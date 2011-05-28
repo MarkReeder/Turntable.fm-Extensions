@@ -1,0 +1,17 @@
+A Bookmarklet to add functionality to turntable.fm
+
+Current Features include:
+
+    HTML5 Desktop Notifications for the following: (Chrome Only)
+        Chat messages (pretty buggy at the moment)
+        Song changes - includes album art if available
+        Votes - both up and down with attribution to the voter
+        DJ Changes - know when DJs step up to or down from the decks
+        Listener Changes - know who has just entered or exited the room
+
+    Auto Awesome support (inspired by J2 Labs' initial implementation which was built based on @Tivs' hack)
+
+    Vote Log (currently in the preferences menu)
+
+
+My current highest priority tasks are turning this into a proper Chrome extension and getting last.fm scrobbling implemented.
