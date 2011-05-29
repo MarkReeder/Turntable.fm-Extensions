@@ -1,0 +1,16 @@
+{
+  "name": "Turntable.fm Extended",
+  "version": "0.1",
+  "description": "Adds Desktop Notifications to turntable.fm events",
+  "content_scripts": [
+    {
+      "matches": ["http://turntable.fm/*"],
+      "css": ["turntable.fm.extend.css"],
+      "js": ["turntable.fm.extend.js"]
+    }
+  ],
+  "permissions": [
+	"tabs",
+	"http://turntable.fm/*"
+  ]
+}
