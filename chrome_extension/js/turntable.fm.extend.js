@@ -75,15 +75,8 @@ TFMEX.prefs = {
     "messageTimeout": 10000
 };
 TFMEX.votelog = [];
-(function() {
-    $("script[href$='turntable.fm.extend.dev.js']").remove();
-    $("link[href$='turntable.fm.extend.css']").remove();
-    $(document.createElement('link')).attr({
-    href: 'http://globalplaylist.com/css/turntable.fm.extend.css',
-    media: 'screen',
-    type: 'text/css',
-    rel: 'stylesheet'
-    }).appendTo('head');
+$(document).ready(function() {
+    // $("script[href$='turntable.fm.extend.dev.js']").remove();
 
     $("#tfmExtended").remove();
     TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="gear"></div><div class="preferences hidden"></div></div></div>');
@@ -139,10 +132,11 @@ TFMEX.votelog = [];
             preferencesContent += '<dd><input type="checkbox" id="autoAwesome" data-tfmex-pref="autoAwesome" value="1" /></dd>';
             preferencesContent += '</dl>';
             
-            if(TFMEX.votelog.length === 0 && turntable.topViewController.upvoters.length > 0) {
-                for (var upvoter in turntable.topViewController.upvoters) {
-                    if (turntable.topViewController.upvoters.hasOwnProperty(upvoter)) {
-                        TFMEX.votelog.push([turntable.topViewController.upvoters[upvoter], "up"]);
+            // console.log("window.turntable", window.turntable);
+            if(TFMEX.votelog.length === 0 && typeof(window.turntable.topViewController.upvoters) !== "undefined" && window.turntable.topViewController.upvoters.length > 0) {
+                for (var upvoter in window.turntable.topViewController.upvoters) {
+                    if (window.turntable.topViewController.upvoters.hasOwnProperty(upvoter)) {
+                        TFMEX.votelog.push([window.turntable.topViewController.upvoters[upvoter], "up"]);
                     }
                 }
             }
@@ -151,7 +145,7 @@ TFMEX.votelog = [];
                 if (TFMEX.votelog.hasOwnProperty(vote)) {
                     currentVote = TFMEX.votelog[vote];
                     preferencesContent += "<li>";
-                    preferencesContent += turntable.topViewController.users[currentVote[0]].name + " voted: " + voteMap[currentVote[1]];
+                    preferencesContent += window.turntable.topViewController.users[currentVote[0]].name + " voted: " + voteMap[currentVote[1]];
                     preferencesContent += "</li>";
                 }
             }
@@ -189,16 +183,6 @@ TFMEX.votelog = [];
         hidePrefs = function() {
             $("#tfmExtended .preferences").addClass("hidden");
         },
-        modifyTurntableObjects = function() {
-            blackswan.add_source_animation = function (c, b) {
-                    if (!this.data.animations) {
-                        this.data.animations = {};
-                    }
-                    for (var d in b) {
-                        this.data.animations[d] = b[d];
-                    }
-                };  
-        },
         extensionEventListener = function(m){
             // console.log("New Message:", m);
         
@@ -207,7 +191,7 @@ TFMEX.votelog = [];
                 currentDJName = "";
             
             if(m.hasOwnProperty("msgid")){
-                songMetadata = turntable.topViewController.currentSong.metadata;
+                songMetadata = window.turntable.topViewController.currentSong.metadata;
                 if(songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist) {
                     lastSongMetadata = songMetadata;
                 } else {
@@ -273,13 +257,13 @@ TFMEX.votelog = [];
                         var currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
                         try {
                             if(currentVote[1] === "up") {
-                                // turntable.topViewController.roomManager.add_animation_to(turntable.topViewController.users[currentVote[0]], "rock");
+                                // window.turntable.topViewController.roomManager.add_animation_to(window.turntable.topViewController.users[currentVote[0]], "rock");
                             }
                             if(TFMEX.prefs.showVote) {
                                 $.jwNotify({
                                     title: "",
                                     image: "",
-                                    body: turntable.topViewController.users[currentVote[0]].name + " voted: " + voteMap[currentVote[1]],
+                                    body: window.turntable.topViewController.users[currentVote[0]].name + " voted: " + voteMap[currentVote[1]],
                                     timeout: TFMEX.prefs.messageTimeout
                                 });
                             }
@@ -294,7 +278,7 @@ TFMEX.votelog = [];
         
         if(songMetadata) {
             if(TFMEX.prefs.showSong) {
-                var title = turntable.topViewController.users[turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
+                var title = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
                     coverArt = songMetadata.coverart?songMetadata.coverart:"",
                     body = songMetadata.artist + " - " + songMetadata.song;
                 $.jwNotify({
@@ -306,11 +290,10 @@ TFMEX.votelog = [];
             }
         }
     }
-    modifyTurntableObjects();
     try {
-        turntable.removeEventListener("message", extensionEventListener);
-        turntable.removeEventListener("soundstart", extensionEventListener);
+        window.turntable.removeEventListener("message", extensionEventListener);
+        window.turntable.removeEventListener("soundstart", extensionEventListener);
     } catch(e) {}
-    turntable.addEventListener("message", extensionEventListener);
-    turntable.addEventListener("soundstart", extensionEventListener);
+    window.turntable.addEventListener("message", extensionEventListener);
+    window.turntable.addEventListener("soundstart", extensionEventListener);
 })();
