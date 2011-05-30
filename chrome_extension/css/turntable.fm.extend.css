@@ -3,7 +3,7 @@
 #tfmExtended .settings .gear { position: absolute; width: 45px; height: 45px; background: url('http://globalplaylist.com/images/gear-32x32.png') no-repeat center center #646464; }
 #tfmExtended .preferences { width: 720px; margin-left: -760px; padding: 20px; background-color: #fff; min-height: 100px; position: relative; }
 #tfmExtended .preferences dl { width: 225px; }
-#tfmExtended .preferences dt { float: left; clear: both; margin-bottom: 10px; }
+#tfmExtended .preferences dt { float: left; clear: both; margin-bottom: 10px; width: 210px; }
 #tfmExtended .preferences dd { float: right; clear: right; }
 #tfmExtended .hidden { display: none; }
 #tfmExtended .clL { clear: left; }

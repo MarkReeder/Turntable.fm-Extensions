@@ -1,17 +1,19 @@
 {
   "name": "Turntable.fm Extended",
   "version": "0.1",
-  "description": "Adds Desktop Notifications to turntable.fm events",
+  "description": "Adds desktop notifications and other additional features to turntable.fm",
+  "background_page": "background.html",
   "content_scripts": [
     {
       "matches": ["http://turntable.fm/*"],
       "css": ["css/turntable.fm.extend.css"],
-      "js": ["js/jquery.1.6.1.min.js", "js/injectScript.js"]
+      "js": ["js/jquery.1.6.1.min.js", "js/injectScript.js", "js/contentscript.js"]
     }
   ],
   "permissions": [
 	"tabs",
 	"notifications",
-	"http://turntable.fm/*"
+	"http://turntable.fm/*",
+    "http://ws.audioscrobbler.com/*"
   ]
 }
