@@ -98,7 +98,7 @@ $(document).ready(function() {
             currentVote = null;
 
         preferencesContent += '<dl>';
-        preferencesContent += '<dt>Show Chat Messages?</dt>';
+        preferencesContent += '<dt>Show Chat Messages?<br />(Note: Disable the chat ding for this to work)</dt>';
         preferencesContent += '<dd><input type="checkbox" id="showChat" data-tfmex-pref="showChat" value="1" /></dd>';
         preferencesContent += '<dt>Show Song Messages?</dt>';
         preferencesContent += '<dd><input type="checkbox" id="showSong" data-tfmex-pref="showSong" value="1" /></dd>';
@@ -227,9 +227,9 @@ $(document).ready(function() {
                     if(TFMEX.prefs.showListenerChanges) {
                         // console.log("showListenerChanges", m);
                         desktopAlert({
-                            title: "",
+                            title: m.user[0].name + " just " + listenerChangeMap[m.command] + " the room.",
                             image: "",
-                            body: m.user[0].name + " just " + listenerChangeMap[m.command] + " the room.",
+                            body: "",
                             timeout: TFMEX.prefs.messageTimeout
                         });
 		            }
@@ -239,9 +239,9 @@ $(document).ready(function() {
                     if(TFMEX.prefs.showDJChanges) {
                         // console.log("showDJChanges", m);
                         desktopAlert({
-                            title: "",
+                            title: m.user[0].name + " " + djChangeMap[m.command] + " the decks.",
                             image: "",
-                            body: m.user[0].name + " " + djChangeMap[m.command] + " the decks.",
+                            body: "",
                             timeout: TFMEX.prefs.messageTimeout
                         });
                     }
@@ -250,14 +250,11 @@ $(document).ready(function() {
                     TFMEX.votelog = m.room.metadata.votelog;
                     var currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
                     try {
-                        if(currentVote[1] === "up") {
-                            // window.turntable.topViewController.roomManager.add_animation_to(window.turntable.topViewController.users[currentVote[0]], "rock");
-                        }
                         if(TFMEX.prefs.showVote) {
                             desktopAlert({
-                                title: "",
+                                title: window.turntable.topViewController.users[currentVote[0]].name + " voted: ",
                                 image: "",
-                                body: window.turntable.topViewController.users[currentVote[0]].name + " voted: " + voteMap[currentVote[1]],
+                                body: voteMap[currentVote[1]],
                                 timeout: TFMEX.prefs.messageTimeout
                             });
                         }
