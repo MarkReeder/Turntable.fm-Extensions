@@ -13,5 +13,4 @@ Current Features include:
 
     Vote Log (currently in the preferences menu)
 
-
-My current highest priority tasks are turning this into a proper Chrome extension and getting last.fm scrobbling implemented.
+    Last.fm Scrobbling (courtesy https://github.com/gabek/TurntableScrobbler)
