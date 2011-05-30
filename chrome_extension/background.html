@@ -33,6 +33,7 @@
 		var artist = songObj.artist;
 		var track = songObj.song;
 		var length = songObj.length;
+		var album = songObj.album;
 		var scrobbleIn = length>480?240:length/2;
 		
 		window.clearTimeout(scrobble_timer);
@@ -43,10 +44,12 @@
 		
 		
 		//console.log("Creating sig from: "+"artist"+artist+"api_key"+api_key+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
-
-		api_sig = hex_md5("api_key"+api_key+"artist"+artist+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
+		var methodSignature = "album" + album + "api_key" + api_key + "artist" + artist + "length" + length + "method" + api_call + "sk" + session_token + "timestamp" + timestamp + "track" + track+api_secret;
+		console.log(methodSignature);
+		api_sig = hex_md5(methodSignature);
 
 		var params = {
+			"album" : album,
 			"api_key" : api_key,
 			"artist": artist,
 			"api_sig": api_sig,
@@ -85,11 +88,13 @@
 		var artist = songObj.artist;
 		var track = songObj.song;
 		var length = songObj.length;
+		var album = songObj.album;
 		//console.log("Creating sig from: "+"artist"+artist+"api_key"+api_key+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
 		
-		api_sig = hex_md5("api_key"+api_key+"artist"+artist+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
+		api_sig = hex_md5("album" + album + "api_key"+api_key+"artist"+artist+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
 
 		var params = {
+			"album" : album,
 			"api_key" : api_key,
 			"artist": artist,
 			"api_sig": api_sig,
