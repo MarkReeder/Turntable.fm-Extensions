@@ -3,6 +3,8 @@
 	var api_key = "62be1c8445c92c28e5b36f548c069f69";
 	var api_secret = "371780d53d282c42b3e50229df3df313";
 	var session_id;
+	var current_song;
+	var scrobble_timer;
 	
 	chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	    if (request.method == "getToken")
@@ -11,22 +13,78 @@
 			sendResponse(localStorage['lastfm-session-token'])
 		else if (request.method == "createSession")
 			create_session();
-		else if (request.method == "scrobbleTrack")
-			scrobble(request.artist,request.track,request.session_token);
+		else if (request.method == "nowPlaying")
+			nowPlaying(request.songObj,request.session_token);
 	    else
 	      sendResponse(); // snub them.
 	});
 
 
-	function scrobble(artist,track,session_token) {
+	function nowPlaying(songObj,session_token) {
+		current_song = songObj;
+		console.log("In nowPlaying");
+		console.log("lastfm-session-token", session_token);
+		timestamp = Math.round((new Date()).getTime() / 1000);
+
+		var method = 'POST';
+		var api_call ='track.updateNowPlaying';
+	  	var url = 'http://ws.audioscrobbler.com/2.0/';
+
+		var artist = songObj.artist;
+		var track = songObj.song;
+		var length = songObj.length;
+		var scrobbleIn = length>480?240:length/2;
+		
+		window.clearTimeout(scrobble_timer);
+		scrobble_timer = window.setTimeout(
+			function(){
+				scrobble(songObj, session_token);
+			}, scrobbleIn*1000);
+		
+		
+		//console.log("Creating sig from: "+"artist"+artist+"api_key"+api_key+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
+
+		api_sig = hex_md5("api_key"+api_key+"artist"+artist+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
+
+		var params = {
+			"api_key" : api_key,
+			"artist": artist,
+			"api_sig": api_sig,
+			"length": length,
+			"sk": session_token,
+			"timestamp": timestamp,
+			"track": track,
+			"format":"json"
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.open(method, url + '?' + 'method=' + api_call + '&' + stringify(params), true);
+
+		 xhr.onreadystatechange = function(data) {
+			if (xhr.readyState == 4) {
+				if (xhr.status == 200) {
+					console.log("Received data: "+xhr.responseText);
+				}
+			}
+ 		};
+
+ 	  	xhr.send();
+		//console.log("Made XHR request: "+url + '?method=' + api_call + '&' + stringify(params));
+
+	}
+
+
+	function scrobble(songObj,session_token) {
+		console.log("scrobble", songObj, session_token);
 		timestamp = Math.round((new Date()).getTime() / 1000);
 	
 		var method = 'POST';
 		var api_call ='track.scrobble';
 	  	var url = 'http://ws.audioscrobbler.com/2.0/';
 		
-		var artist = htmlspecialchars_decode(artist);
-		var track = htmlspecialchars_decode(track);
+		var artist = songObj.artist;
+		var track = songObj.song;
+		var length = songObj.length;
 		//console.log("Creating sig from: "+"artist"+artist+"api_key"+api_key+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
 		
 		api_sig = hex_md5("api_key"+api_key+"artist"+artist+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);

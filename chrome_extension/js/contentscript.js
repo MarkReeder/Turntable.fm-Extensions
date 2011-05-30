@@ -4,6 +4,7 @@ var chat_message;
 var existing_track_message;
 var lastfm_token;
 var session_token;
+var current_song;
 
 var api_key = "62be1c8445c92c28e5b36f548c069f69";
 var api_secret = "371780d53d282c42b3e50229df3df313";
@@ -12,7 +13,7 @@ console.log('TurntableScrobbler loaded.');
 
 check_for_authentication();
 
-function checkForChange() {
+function checkForChangeOld() {
 	//Uses the " started playing "Ayo For Yayo" by Andre Nickatina" string
 	
 	chat_messages = document.getElementsByClassName("message");
@@ -37,13 +38,23 @@ function checkForChange() {
 			//track_length = length_raw_string.substr(length_raw_string.indexOf(" - ") + 3);
 			
 		
-			console.log("Scrobbling: " + artist_string + " - " + track_string);
+			console.log("Now Playing: " + artist_string + " - " + track_string);
 			
-			scrobble(artist_string,track_string,localStorage["lastfm-session-token"]);
+			nowPlaying(artist_string,track_string,localStorage["lastfm-session-token"]);
 			
 		}
 	}
-}	
+}
+
+function checkForChange() {
+    var previous_song = current_song;
+    current_song = $("body").attr("data-current-song-obj");
+    if(current_song !== previous_song) {
+        console.log(current_song);
+        $("body").attr("data-cancel-scrobble", false);
+        nowPlaying(JSON.parse(current_song),localStorage["lastfm-session-token"]);
+    }
+}
 
 function get_authenticated() {
 	var method = 'POST';
@@ -57,7 +68,10 @@ function get_authenticated() {
 function check_for_authentication() {
 	chrome.extension.sendRequest({method: "getSession"}, function(token) {
 		localStorage["lastfm-session-token"] = token;
+		$("body").attr("data-lastfm-session-token", token);
+		// window.localStorage.setItem("lastfm-session-token", token);
 		console.log("Reieved session: "+token);
+		console.log("token: ", $("body").attr("data-lastfm-session-token"));
 	});
 	
 	//console.log(token);
@@ -67,9 +81,9 @@ function check_for_authentication() {
 		window.localStorage.removeItem("lastfm_token");
 		
 		get_authenticated();
-		console.log("No authentication token.  Resolving that.");
+		// console.log("No authentication token.  Resolving that.");
 	} else {
-		console.log("Found authentication token.  Moving on.");
+		// console.log("Found authentication token.  Moving on.");
 				
 		setInterval("checkForChange()",1000);
 		lastfm_token = localStorage["lastfm_token"];
@@ -77,14 +91,23 @@ function check_for_authentication() {
 	}
 }
 
-function scrobble(artist,track,session) {
-	console.log("Sending scrobble request");
-	
-	chrome.extension.sendRequest({method: "scrobbleTrack",artist: artist, track: track, session_token: session});
+function nowPlaying(songObj,session) {
+	// console.log("Sending now playing request", songObj);
+
+	chrome.extension.sendRequest({method: "nowPlaying",songObj: songObj, session_token: session});
 
 }
 
+function scrobble(songObj,session) {
+	console.log("Sending scrobble request");
+	
+	chrome.extension.sendRequest({method: "scrobbleTrack",songObj: songObj, session_token: session});
 
+}
+
+function cancelScrobble() {
+    chrome.extension.sendRequest({method: "cancelScrobble",songObj: songObj, session_token: session});
+}
 
 
 

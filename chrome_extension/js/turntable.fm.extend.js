@@ -176,6 +176,23 @@ $(document).ready(function() {
         }, notificationObj.timeout);
         
     },
+    updateNowPlaying = function(songObj) {
+        var lfmSessionToken = "";
+        lfmSessionToken = $("body").attr("data-lastfm-session-token");
+        
+        if(lfmSessionToken) {
+            try {
+                // console.log("songMetadata", songObj);
+                // console.log("lfm token:", lfmSessionToken);
+                // console.log("sendRequest- nowPlaying", songObj, lfmSessionToken);
+                $("body").attr("data-current-song-obj", JSON.stringify(songObj));
+                chrome.extension.sendRequest({method: "nowPlaying",trackObj: songObj, session_token: lfmSessionToken});
+            } catch(e) { console.error(e.message); }
+        } else {
+            // console.log("no lfm session, retry");
+            window.setTimeout(function() { updateNowPlaying(songObj); }, 250);
+        }
+    },
     extensionEventListener = function(m){
     
         var songMetadata = null,
@@ -268,6 +285,7 @@ $(document).ready(function() {
         }
         
         if(songMetadata) {
+            updateNowPlaying(songMetadata);
             if(TFMEX.prefs.showSong) {
                 var title = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
                     coverArt = songMetadata.coverart?songMetadata.coverart:"",
