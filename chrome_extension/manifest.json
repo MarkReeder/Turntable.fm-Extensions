@@ -5,12 +5,13 @@
   "content_scripts": [
     {
       "matches": ["http://turntable.fm/*"],
-      "css": ["turntable.fm.extend.css"],
-      "js": ["turntable.fm.extend.js"]
+      "css": ["css/turntable.fm.extend.css"],
+      "js": ["js/jquery.1.6.1.min.js", "js/injectScript.js"]
     }
   ],
   "permissions": [
 	"tabs",
+	"notifications",
 	"http://turntable.fm/*"
   ]
 }
