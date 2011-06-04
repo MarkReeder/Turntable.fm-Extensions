@@ -7,3 +7,6 @@
 #tfmExtended .preferences dd { float: right; clear: right; }
 #tfmExtended .hidden { display: none; }
 #tfmExtended .clL { clear: left; }
+#tfmExtended .clB { clear: both; }
+#tfmExtended .currentSongVotes { float: left; }
+#tfmExtended .currentUserList { float: right; }

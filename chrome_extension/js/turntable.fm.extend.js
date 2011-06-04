@@ -80,7 +80,9 @@ $(document).ready(function() {
 	    "rem_dj": "just stepped down from"
 	},
 	attachListeners = function() {
+		console.log("in attachListeners");
         var intervalID = window.setInterval(function() {
+			console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
             if(window.turntable.eventListeners.message.length) {
                 window.turntable.addEventListener("message", extensionEventListener);
                 window.turntable.addEventListener("soundstart", extensionEventListener);
@@ -131,6 +133,8 @@ $(document).ready(function() {
             }
         }
         preferencesContent += '</ul>';
+        preferencesContent += '<ul class="currentUserList"></ul>';
+        preferencesContent += '<div class="clB">&nbsp;</div>';
         $("#tfmExtended .preferences").html(preferencesContent);
         $("#tfmExtended .preferences").removeClass("hidden");
         if(TFMEX.localStorageSupport) {
@@ -160,6 +164,7 @@ $(document).ready(function() {
             }
         }
         TFMEX.prefs = preferenceSettings;
+		updateUserList();
     },
     hidePrefs = function() {
         $("#tfmExtended .preferences").addClass("hidden");
@@ -186,13 +191,24 @@ $(document).ready(function() {
                 // console.log("lfm token:", lfmSessionToken);
                 // console.log("sendRequest- nowPlaying", songObj, lfmSessionToken);
                 $("body").attr("data-current-song-obj", JSON.stringify(songObj));
-                chrome.extension.sendRequest({method: "nowPlaying",trackObj: songObj, session_token: lfmSessionToken});
+                // chrome.extension.sendRequest({method: "nowPlaying",trackObj: songObj, session_token: lfmSessionToken});
             } catch(e) { console.error(e.message); }
         } else {
             // console.log("no lfm session, retry");
             window.setTimeout(function() { updateNowPlaying(songObj); }, 250);
         }
     },
+	updateUserList = function() {
+		var userList = "",
+			currentUser = {};
+        for (var user in window.turntable.topViewController.users) {
+            if (window.turntable.topViewController.users.hasOwnProperty(user)) {
+				currentUser = window.turntable.topViewController.users[user];
+				userList += '<li><a href="http://facebook.com/profile.php?id=' + currentUser['fbid'] + '" target="_blank">' + currentUser['name'] + "</a>";
+            }
+        }	
+		$('#tfmExtended .preferences .currentUserList').html(userList);
+	},
     extensionEventListener = function(m){
     
         var songMetadata = null,
@@ -215,7 +231,8 @@ $(document).ready(function() {
                     TFMEX.votelog = [];
                     try {
                         if(TFMEX.prefs.autoAwesome) {
-                            ROOMMANAGER.callback("upvote");
+							$("#btn_upvote").click();
+                            // ROOMMANAGER.callback("upvote");
                         }
                         songMetadata = m.room.metadata.current_song.metadata;
                         lastSongMetadata = songMetadata;
@@ -238,6 +255,9 @@ $(document).ready(function() {
                             timeout: TFMEX.prefs.messageTimeout
                         });
                     }
+					settimeout(function() {
+						console.log($(".tooltip_info b"));	
+					}, 500);
                     break;
                 case "registered":
                 case "deregistered":
@@ -287,25 +307,33 @@ $(document).ready(function() {
         if(songMetadata) {
             updateNowPlaying(songMetadata);
             if(TFMEX.prefs.showSong) {
-                var title = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
-                    coverArt = songMetadata.coverart?songMetadata.coverart:"",
-                    body = songMetadata.artist + " - " + songMetadata.song;
-                desktopAlert({
-                    title: title,
-                    image: coverArt,
-                    body: body,
-                    timeout: TFMEX.prefs.messageTimeout
-                });
+				settimeout(function() {
+					var title = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
+	                    coverArt = songMetadata.coverart?songMetadata.coverart:"",
+	                    body = songMetadata.artist + " - " + songMetadata.song;
+	                desktopAlert({
+	                    title: title,
+	                    image: coverArt,
+	                    body: body,
+	                    timeout: TFMEX.prefs.messageTimeout
+	                });
+				}, 500);
             }
         }
     }
+} catch(e) { console.error(e); }
+
+	attachListeners();
     $(window).bind("popstate", function (b) {
+		console.log("popstate: ", b);
+		alert("popstate");
         cleanUp();
         attachListeners();
     });
     $(window).bind("pushstate", function (b) {
+		console.log("pushstate: ", b);
+		alert("pushstate");
         cleanUp();
         attachListeners();
     });
-} catch(e) { console.error(e); }
 });
