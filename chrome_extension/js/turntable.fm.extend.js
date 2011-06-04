@@ -80,9 +80,9 @@ $(document).ready(function() {
 	    "rem_dj": "just stepped down from"
 	},
 	attachListeners = function() {
-		console.log("in attachListeners");
+		// console.log("in attachListeners");
         var intervalID = window.setInterval(function() {
-			console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
+			// console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
             if(window.turntable.eventListeners.message.length) {
                 window.turntable.addEventListener("message", extensionEventListener);
                 window.turntable.addEventListener("soundstart", extensionEventListener);
@@ -255,9 +255,6 @@ $(document).ready(function() {
                             timeout: TFMEX.prefs.messageTimeout
                         });
                     }
-					settimeout(function() {
-						console.log($(".tooltip_info b"));	
-					}, 500);
                     break;
                 case "registered":
                 case "deregistered":
@@ -307,7 +304,7 @@ $(document).ready(function() {
         if(songMetadata) {
             updateNowPlaying(songMetadata);
             if(TFMEX.prefs.showSong) {
-				settimeout(function() {
+				settimeout(function(songMetadata) {
 					var title = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
 	                    coverArt = songMetadata.coverart?songMetadata.coverart:"",
 	                    body = songMetadata.artist + " - " + songMetadata.song;
@@ -325,14 +322,18 @@ $(document).ready(function() {
 
 	attachListeners();
     $(window).bind("popstate", function (b) {
+		/*
 		console.log("popstate: ", b);
 		alert("popstate");
+		*/
         cleanUp();
         attachListeners();
     });
     $(window).bind("pushstate", function (b) {
+		/*
 		console.log("pushstate: ", b);
 		alert("pushstate");
+		*/
         cleanUp();
         attachListeners();
     });
