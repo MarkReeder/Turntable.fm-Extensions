@@ -87,7 +87,9 @@
 	function scrobble(songObj,session_token) {
 		// console.log("scrobble", songObj, session_token);
 		// console.log("cancel?", cancelScrobble);
-		if(!cancelScrobble) {
+		if(cancelScrobble) {
+			console.log("Canceling Scrobble- track was voted lame.");
+		} else {
 			timestamp = Math.round((new Date()).getTime() / 1000);
 
 			var method = 'POST';

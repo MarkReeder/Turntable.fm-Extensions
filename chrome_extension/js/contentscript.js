@@ -1,13 +1,13 @@
-var title_string;
-var artist_string;
-var chat_message;
-var existing_track_message;
-var lastfm_token;
-var session_token;
-var current_song;
-
-var api_key = "62be1c8445c92c28e5b36f548c069f69";
-var api_secret = "371780d53d282c42b3e50229df3df313";
+var title_string,
+	artist_string,
+	chat_message,
+	existing_track_message,
+	lastfm_token,
+	session_token,
+	current_song,
+	api_key = "62be1c8445c92c28e5b36f548c069f69",
+	api_secret = "371780d53d282c42b3e50229df3df313",
+	cancelScrobble = false;
 
 // console.log('TurntableScrobbler loaded.');
 
@@ -49,10 +49,16 @@ function checkForChangeOld() {
 function checkForChange() {
     var previous_song = current_song;
     current_song = $("body").attr("data-current-song-obj");
-	if($("body").attr("data-cancel-scrobble")) {
-		setCancelScrobble(true);
+	if($("body").attr("data-cancel-scrobble") === "true") {
+		if(!cancelScrobble) {
+			cancelScrobble = true;
+			setCancelScrobble(true);
+		}
 	} else {
-		setCancelScrobble(false);
+		if(cancelScrobble) {
+			cancelScrobble = false;
+			setCancelScrobble(false);
+		}
 	}
     if(current_song !== previous_song) {
         // console.log(current_song);
@@ -112,6 +118,7 @@ function scrobble(songObj,session) {
 }
 
 function setCancelScrobble(shouldCancel) {
+	console.log("setCancelScrobble", shouldCancel);
     chrome.extension.sendRequest({method: "setCancelScrobble", shouldCancel: shouldCancel});
 }
 
