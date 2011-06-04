@@ -118,7 +118,7 @@ function scrobble(songObj,session) {
 }
 
 function setCancelScrobble(shouldCancel) {
-	console.log("setCancelScrobble", shouldCancel);
+	// console.log("setCancelScrobble", shouldCancel);
     chrome.extension.sendRequest({method: "setCancelScrobble", shouldCancel: shouldCancel});
 }
 
