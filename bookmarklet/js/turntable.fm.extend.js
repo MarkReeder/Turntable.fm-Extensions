@@ -96,6 +96,13 @@ TFMEX.votelog = [];
             hidePrefs();
         }
     });
+    // hide the window if anything besides the preference window is clicked
+    $("body").click(function() {
+        if ($(e.target).hasClass('preferences') && !$("#tfmExtended .preferences").hasClass("hidden")) {
+            hidePrefs();
+        }
+    });
+
 
     if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
         TFMEX.$body.bind('click.jwNotify', function() {
