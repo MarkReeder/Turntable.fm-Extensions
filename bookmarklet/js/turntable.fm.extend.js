@@ -1,4 +1,5 @@
 TFMEX = {};
+TFMEX.BASE_HOSTNAME = ''
 
 /*
  jquery.webkit-notification plugin v 0.1
@@ -72,6 +73,7 @@ TFMEX.prefs = {
     "showDJChanges": false,
     "showListenerChanges": false,
     "autoAwesome": false,
+    "autoDj": true,
     "messageTimeout": 10000
 };
 TFMEX.votelog = [];
@@ -79,7 +81,7 @@ TFMEX.votelog = [];
     $("script[href$='turntable.fm.extend.dev.js']").remove();
     $("link[href$='turntable.fm.extend.css']").remove();
     $(document.createElement('link')).attr({
-    href: 'http://globalplaylist.com/css/turntable.fm.extend.css',
+    href: TFMEX.BASE_HOSTNAME+'/css/turntable.fm.extend.css',
     media: 'screen',
     type: 'text/css',
     rel: 'stylesheet'
@@ -137,6 +139,8 @@ TFMEX.votelog = [];
             preferencesContent += '<dd><input type="checkbox" id="showListenerChanges" data-tfmex-pref="showListenerChanges" value="1" /></dd>';
             preferencesContent += '<dt>Auto Awesome?</dt>';
             preferencesContent += '<dd><input type="checkbox" id="autoAwesome" data-tfmex-pref="autoAwesome" value="1" /></dd>';
+            preferencesContent += '<dt>Auto DJ?</dt>';
+            preferencesContent += '<dd><input type="checkbox" id="autoDj" data-tfmex-pref="autoDj" value="1" /></dd>';
             preferencesContent += '</dl>';
             
             if(TFMEX.votelog.length === 0 && turntable.topViewController.upvoters.length > 0) {
@@ -258,6 +262,9 @@ TFMEX.votelog = [];
                         break;
                     case "add_dj":
                     case "rem_dj":
+                        if (m.command === "rem_dj" && TFMEX.prefs.autoDj) {
+                            $('.become_dj').click();
+                        }
                         if(TFMEX.prefs.showDJChanges) {
                             // console.log("showDJChanges", m);
                             $.jwNotify({
