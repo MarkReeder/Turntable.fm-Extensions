@@ -1,9 +1,61 @@
-#tfmExtended { position: absolute; top: 0; left: 50%; margin-left: 380px; z-index: 999; width: 45px; }
-#tfmExtended .settings { position: relative; }
-#tfmExtended .settings .gear { position: absolute; width: 45px; height: 45px; background: url('http://mmo.me/turntable/images/gear-32x32.png') no-repeat center center #646464; }
-#tfmExtended .preferences { width: 720px; margin-left: -760px; padding: 20px; background-color: #fff; min-height: 100px; position: relative; }
-#tfmExtended .preferences dl { width: 225px; }
-#tfmExtended .preferences dt { float: left; clear: both; margin-bottom: 10px; width: 210px; }
-#tfmExtended .preferences dd { float: right; clear: right; }
-#tfmExtended .hidden { display: none; }
-#tfmExtended .clL { clear: left; }
+#tfmExtended {
+    left: 50%;
+    margin-left: 380px;
+    position: absolute;
+    top: 0;
+    width: 45px;
+    z-index: 999;
+}
+#tfmExtended .settings {
+    position: relative;
+}
+#tfmExtended .settings .gear {
+    background: url('http://mmo.me/turntable/images/gear-32x32.png') no-repeat center center #646464;
+    height: 45px;
+    position: absolute;
+    width: 45px;
+}
+
+#tfmExtended .preferences {
+    background-color: #fefefe;
+    margin-left: -760px;
+    min-height: 100px;
+    opacity:0.95;
+    padding: 20px;
+    position: relative;
+    width: 720px;
+
+    border-bottom-left-radius:8px;
+    border-bottom-right-radius:8px;
+    -webkit-border-bottom-left-radius:8px;
+    -webkit-border-bottom-right-radius:8px;
+    -moz-border-radius-bottomleft:8px;
+    -moz-border-radius-bottomright:8px;
+    box-shadow:0 8px 5px 1px rgba(0, 0, 0, 0.55);
+    -webkit-box-shadow:0 8px 5px 1px rgba(0, 0, 0, 0.55);
+    -moz-box-shadow:0 8px 5px 1px rgba(0, 0, 0, 0.55);
+}
+#tfmExtended .preferences dl {
+    overflow:hidden;
+    width: 225px;
+}
+#tfmExtended .preferences dt {
+    clear: both;
+    float: left;
+    margin-bottom: 10px;
+    width: 210px;
+}
+#tfmExtended .preferences dd {
+    clear: right;
+    float: right;
+}
+#tfmExtended .hidden {
+    display: none;
+}
+#tfmExtended .clL {
+    clear: left;
+}
+#tfmExtended .currentSongVotes {
+    height:150px;
+    overflow-y: scroll;
+}
