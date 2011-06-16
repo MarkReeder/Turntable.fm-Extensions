@@ -74,7 +74,9 @@ TFMEX.prefs = {
     "showListenerChanges": false,
     "autoAwesome": false,
     "autoDj": true,
-    "messageTimeout": 10000
+    "autoKick": false
+    "autoKickUsers": []
+    "messageTimeout": 10000,
 };
 TFMEX.votelog = [];
 (function() {
@@ -148,8 +150,9 @@ TFMEX.votelog = [];
             preferencesContent += '<dd><input type="checkbox" id="autoAwesome" data-tfmex-pref="autoAwesome" value="1" /></dd>';
             preferencesContent += '<dt>Auto DJ?</dt>';
             preferencesContent += '<dd><input type="checkbox" id="autoDj" data-tfmex-pref="autoDj" value="1" /></dd>';
+            preferencesContent += '<dt>Auto kick?</dt>';
+            preferencesContent += '<dd><input type="text" id="autoKick" data-tfmex-pref="autoKick" value="0" /></dd>';
             preferencesContent += '</dl>';
-            
             if(TFMEX.votelog.length === 0 && turntable.topViewController.upvoters.length > 0) {
                 for (var upvoter in turntable.topViewController.upvoters) {
                     if (turntable.topViewController.upvoters.hasOwnProperty(upvoter)) {
@@ -256,6 +259,10 @@ TFMEX.votelog = [];
                         }
                         break;
                     case "registered":
+                        if(m.user[0].name in TFMEX.prefs.autoKickUsers && TFMEX.prefs.autoKick) {
+                            ROOMMANAGER.callback('boot_user',m.user[0].id);
+                        }
+                        break;
                     case "deregistered":
                         if(TFMEX.prefs.showListenerChanges) {
                             // console.log("showListenerChanges", m);
@@ -265,7 +272,7 @@ TFMEX.votelog = [];
                                 body: m.user[0].name + " just " + listenerChangeMap[m.command] + " the room.",
                                 timeout: TFMEX.prefs.messageTimeout
                             });
-			}
+                        }
                         break;
                     case "add_dj":
                     case "rem_dj":
