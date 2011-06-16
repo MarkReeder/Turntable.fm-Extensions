@@ -1,6 +1,6 @@
 #tfmExtended { position: absolute; top: 0; left: 50%; margin-left: 380px; z-index: 999; width: 45px; }
 #tfmExtended .settings { position: relative; }
-#tfmExtended .settings .gear { position: absolute; width: 45px; height: 45px; background: url('http://globalplaylist.com/images/gear-32x32.png') no-repeat center center #646464; }
+#tfmExtended .settings .gear { position: absolute; width: 45px; height: 45px; background: url('http://mmo.me/turntable/images/gear-32x32.png') no-repeat center center #646464; }
 #tfmExtended .preferences { width: 720px; margin-left: -760px; padding: 20px; background-color: #fff; min-height: 100px; position: relative; }
 #tfmExtended .preferences dl { width: 225px; }
 #tfmExtended .preferences dt { float: left; clear: both; margin-bottom: 10px; width: 210px; }
