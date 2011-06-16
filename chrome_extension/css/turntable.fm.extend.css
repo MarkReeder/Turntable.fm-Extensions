@@ -12,3 +12,9 @@
 #tfmExtended .clB { clear: both; }
 #tfmExtended .currentSongVotes { float: left; }
 #tfmExtended .currentUserList { float: right; }
+#tfmExtended #modifyAutoKick { cursor: pointer; color: blue; }
+#autoKickUserPrefs #addAutoKickUser { height: 20px; width: 200px; top: -5px; left: 10px; position: relative; }
+#autoKickUserPrefs #addAutoKickUserButton { float: right; height: 20px; width: 20px; background-color: red; position: relative; left: 15px; cursor: pointer; }
+#autoKickUserPrefs label { left: 5px; position: relative; }
+#autoKickUserPrefs .marginfive { margin: 0 5px; }
+#autoKickUserPrefs a { font-size: 16px }

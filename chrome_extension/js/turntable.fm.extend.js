@@ -37,7 +37,9 @@ TFMEX.prefs = {
     "showDJChanges": false,
     "showListenerChanges": false,
     "autoAwesome": false,
-    "messageTimeout": 10000
+    "messageTimeout": 10000,
+    "autoKick": false,
+    "autoKickUsers": {}
 };
 TFMEX.votelog = [];
 $(document).ready(function() {
@@ -53,7 +55,7 @@ $(document).ready(function() {
             hidePrefs();
         }
     });
-
+    setupLive();
     if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
         TFMEX.$body.bind('click.enableDesktopNotify', function() {
             desktopAlert({
@@ -132,7 +134,10 @@ $(document).ready(function() {
         preferencesContent += '<dd><input type="checkbox" id="showListenerChanges" data-tfmex-pref="showListenerChanges" value="1" /></dd>';
         preferencesContent += '<dt>Auto Awesome?</dt>';
         preferencesContent += '<dd><input type="checkbox" id="autoAwesome" data-tfmex-pref="autoAwesome" value="1" /></dd>';
+        preferencesContent += '<dt>Auto-Kick?</dt>';
+        preferencesContent += '<dd><input type="checkbox" id="autoKick" data-tfmex-pref="autoKick" value="0" /></dd>';
         preferencesContent += '</dl>';
+        preferencesContent += '<div class="clL" id="modifyAutoKick">Modify Auto-Kick List</div>';
         
         if(TFMEX.votelog.length === 0 && typeof(window.turntable.topViewController.upvoters) !== "undefined" && window.turntable.topViewController.upvoters.length > 0) {
             for (var upvoter in window.turntable.topViewController.upvoters) {
@@ -158,6 +163,7 @@ $(document).ready(function() {
         preferencesContent += '</ul>';
         preferencesContent += '<div class="clB">&nbsp;</div>';
         $("#tfmExtended .preferences").html(preferencesContent);
+        $('#modifyAutoKick').click(setupAutoKickPrefs);
         $("#tfmExtended .preferences").removeClass("hidden");
         if(TFMEX.localStorageSupport) {
             preferenceSettings = localStorage.getItem("TFMEX");
@@ -170,7 +176,7 @@ $(document).ready(function() {
             }
         } else { preferenceSettings = TFMEX.prefs; }
         
-        for (prefName in preferenceSettings) {
+        for (var prefName in preferenceSettings) {
             if (preferenceSettings.hasOwnProperty(prefName)) {
                 $('#tfmExtended input[data-tfmex-pref=' + prefName + ']')
                     .attr('checked', preferenceSettings[prefName])
@@ -314,6 +320,13 @@ $(document).ready(function() {
                     }
                     break;
                 case "registered":
+                    for (var userIndex in m.user){
+                        var user = m.user[userIndex];
+                        if(user.userid in TFMEX.prefs.autoKickUsers && TFMEX.prefs.autoKick) {
+                            ROOMMANAGER.callback('boot_user',user.userid);
+                        }
+                    }
+                    break;
                 case "deregistered":
                     if(TFMEX.prefs.showListenerChanges) {
                         // console.log("showListenerChanges", m);
@@ -387,3 +400,88 @@ try {
     });
 } catch(e) { console.error(e.message); }
 });
+function setupAutoKickPrefs(){
+    autoKickPrefs = '';
+    autoKickPrefs += '<div class="modal" id="autoKickUserPrefs">';
+    autoKickPrefs += '<div class="close-x" />';
+    autoKickPrefs += '<label for="addAutoKickUser" >Add User</label>';
+    autoKickPrefs += '<input id="addAutoKickUser" type="text" />';
+    autoKickPrefs += '<div id="addAutoKickUserButton">+</div>';
+    autoKickPrefs += '<div id="autoKickUserList">';
+    autoKickPrefs += '<ul>';
+    for (var userId in TFMEX.prefs.autoKickUsers){
+        var user = TFMEX.prefs.autoKickUsers[userId];
+        autoKickPrefs += generateAutoKickLi(user.name, userId);
+    }
+    autoKickPrefs += '</ul>';
+    autoKickPrefs += '</div>';
+    autoKickPrefs += '</div>';
+    console.log(autoKickPrefs);
+    $('#overlay').html(autoKickPrefs);
+    $('#overlay').show();
+    $('.close-x').click(function(){
+        $('#overlay').html('');
+        $('#overlay').hide();
+    });
+    $('#addAutoKickUserButton').click(function(){
+        var username = $('#addAutoKickUser').val();
+        var users = turntable.topViewController.users;
+        var foundUser = false;
+        for (var userId in users){
+            if (users[userId].name == username){
+                console.log('found user!');
+                var user = users[userId],
+                    shitlist = TFMEX.prefs.autoKickUsers,
+                    newlyAdded = true;
+                for (var cmpUserId in shitlist){
+                    console.log('---------------');
+                    console.log(userId);
+                    console.log(cmpUserId);
+                    console.log('===============');
+                    if (userId === cmpUserId){
+                        newlyAdded = false;
+                    }
+                }
+                if (newlyAdded){
+                    var li = generateAutoKickLi(username, userId);
+                    $('#autoKickUserList').children('ul').append(li);
+                    TFMEX.prefs.autoKickUsers[userId] = {notes:""}
+                }
+                $.extend(TFMEX.prefs.autoKickUsers[userId],
+                         {name: username});
+                localStorage.setItem("TFMEX", JSON.stringify(TFMEX.prefs));
+                var newlyAdded = true;
+                foundUser = true;
+                break;
+            }
+        }
+        if (! foundUser){
+            alert('couldnt find em, sorry bro');
+        }
+    });
+
+};
+function generateAutoKickLi(username, userId){
+    var autoKickPrefs = '';
+    autoKickPrefs += '<li data-userid="'+userId+'">';
+    autoKickPrefs += '<span>'+username+'</span>';
+    autoKickPrefs += '<a class="viewNotesAutoKickUser marginfive" href="#">Notes</a>';
+    autoKickPrefs += '<a class="removeAutoKickUser marginfive" href="#">Remove</a>';
+    autoKickPrefs += '</li>';
+    return autoKickPrefs;
+}
+function setupLive(){
+    console.log('setup');
+    $('.viewNotesAutoKickUser').live('click', function(evt){
+        evt.preventDefault();
+    });
+    $('.removeAutoKickUser').live('click', function(evt){
+        evt.preventDefault();
+        console.log(evt);
+        console.log(evt.currentTarget);
+        var parent = $(evt.currentTarget).parent(),
+            userId = parent.data('userid');
+        parent.slideUp('fast', parent.remove);
+        delete TFMEX.prefs.autoKickUsers[userId];
+    });
+}
