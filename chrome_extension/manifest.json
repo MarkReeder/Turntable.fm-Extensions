@@ -1,6 +1,6 @@
 {
   "name": "Turntable.fm Extended",
-  "version": "0.2.3.1",
+  "version": "0.3",
   "description": "Adds desktop notifications, last.fm scrobbling and other additional features to turntable.fm",
   "icons": { "16":"images/turntable-fm-16.png",
 			 "48":"images/turntable-fm-48.png",

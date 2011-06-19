@@ -41,11 +41,22 @@ TFMEX.prefs = {
     "autoKick": false,
     "autoKickUsers": {}
 };
+TFMEX.clearNotifications = function() {
+	// Should work but doesn't at the moment due to this bug: https://code.google.com/p/chromium/issues/detail?id=40262
+	var notifciation = null;
+	while(TFMEX.notificationQueue.length) {
+		notification = TFMEX.notificationQueue.pop();
+		console.log(notification);
+		notification.cancel();
+	}
+}
+
 TFMEX.votelog = [];
+TFMEX.notificationQueue = [];
 $(document).ready(function() {
     try {
     // $("script[href$='turntable.fm.extend.dev.js']").remove();
-
+	$(window).bind('beforeunload', TFMEX.clearNotifications);
     $("#tfmExtended").remove();
     TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="gear"></div><div class="preferences hidden"></div></div></div>');
     $("#tfmExtended .gear").click(function(){
@@ -198,16 +209,17 @@ $(document).ready(function() {
         $("#tfmExtended .preferences").addClass("hidden");
     },
     desktopAlert = function(notificationObj) {
-		// console.log("desktopAlert: ", notificationObj);
-        var notification = webkitNotifications.createNotification(
-          notificationObj.image?notificationObj.image:"",  // icon url - can be relative
-          notificationObj.title?notificationObj.title:"",  // notification title
-          notificationObj.body?notificationObj.body:""  // notification body text
-        );
-        notification.show();
-        setTimeout(function(){
-            notification.cancel();
-        }, notificationObj.timeout);
+	    var notification = webkitNotifications.createNotification(
+		      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
+		      notificationObj.title?notificationObj.title:"",  // notification title
+		      notificationObj.body?notificationObj.body:""  // notification body text
+		    );
+		TFMEX.notificationQueue.push(notification);
+	    notification.show();
+	    setTimeout(function(){
+			var lastNotification = TFMEX.notificationQueue.pop();
+	        notification.cancel();
+	    }, notificationObj.timeout);
         
     },
     updateNowPlaying = function(songObj) {
