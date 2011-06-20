@@ -13,6 +13,7 @@
 #tfmExtended .currentSongVotes { float: left; }
 #tfmExtended .currentUserList { float: right; }
 #tfmExtended #modifyAutoKick { cursor: pointer; color: blue; }
+#tfmExtended .setEnableScrobbling { background-color: #D51007; color: #fff; }
 #autoKickUserPrefs #addAutoKickUser { height: 20px; width: 200px; top: -5px; left: 10px; position: relative; }
 #autoKickUserPrefs #addAutoKickUserButton { float: right; height: 20px; width: 20px; background-color: red; position: relative; left: 15px; cursor: pointer; }
 #autoKickUserPrefs label { left: 5px; position: relative; }

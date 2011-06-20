@@ -2,9 +2,10 @@
 	 chrome.tabs.getSelected(null,function(tab) {
 	 	var tablink = tab.url;
 	 	token = tablink.substr(tablink.indexOf('=')+1);
-	 	alert(token);
-	 	//Save token to local storage
+	 	// alert(token);
+	 	// Save token to local storage
 	 	localStorage["lastfm-token"] = token;
+		// alert(localStorage["lastfm-token"]);
 	});
 	
 	// console.log("Requesting session token");
@@ -16,4 +17,4 @@
 </script>
 
 
-Scrobbling is now configured.  Feel free to close this tab.
+Scrobbling is now configured.  Please refresh the Turntable.fm tab and feel free to close this tab.

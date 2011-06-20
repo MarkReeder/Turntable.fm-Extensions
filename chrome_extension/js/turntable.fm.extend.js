@@ -66,18 +66,23 @@ $(document).ready(function() {
             hidePrefs();
         }
     });
+	function enableDesktopNotifications() {
+	    if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
+	        TFMEX.$body.bind('click.enableDesktopNotify', function() {
+				window.webkitNotifications.requestPermission(function() {
+	            	desktopAlert({
+		                title: "",
+		                image: "",
+		                body: "Desktop notifications enabled.",
+		                timeout: 1
+	            	});
+	            	TFMEX.$body.unbind('click.enableDesktopNotify')
+				});
+	        });
+	    }
+	}
     setupLive();
-    if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
-        TFMEX.$body.bind('click.enableDesktopNotify', function() {
-            desktopAlert({
-                title: "",
-                image: "",
-                body: "Desktop notifications enabled.",
-                timeout: 1
-            });
-            TFMEX.$body.unbind('click.enableDesktopNotify')
-        });
-    }
+	enableDesktopNotifications();
     var songMetadata = {},
 		lastSongMetadata = {},
         songVotes = [],
@@ -132,6 +137,10 @@ $(document).ready(function() {
             currentVote = null;
 
 	    preferencesContent += '<div class="flR"><h3>Current Users:</h3><ul class="currentUserList"></ul></div>';
+	
+		if($("body").data('scrobbling-disabled')) {
+			preferencesContent += '<a href="#" class="setEnableScrobbling">Click here to enable last.fm scrobbling.</a>';
+		}
         preferencesContent += '<dl class="flL">';
         preferencesContent += '<dt>Show Chat Messages?<br />(Note: Disable the chat ding for this to work)</dt>';
         preferencesContent += '<dd><input type="checkbox" id="showChat" data-tfmex-pref="showChat" value="1" /></dd>';
@@ -209,18 +218,19 @@ $(document).ready(function() {
         $("#tfmExtended .preferences").addClass("hidden");
     },
     desktopAlert = function(notificationObj) {
-	    var notification = webkitNotifications.createNotification(
-		      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
-		      notificationObj.title?notificationObj.title:"",  // notification title
-		      notificationObj.body?notificationObj.body:""  // notification body text
-		    );
-		TFMEX.notificationQueue.push(notification);
-	    notification.show();
-	    setTimeout(function(){
-			var lastNotification = TFMEX.notificationQueue.pop();
-	        notification.cancel();
-	    }, notificationObj.timeout);
-        
+	    if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
+		    var notification = webkitNotifications.createNotification(
+			      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
+			      notificationObj.title?notificationObj.title:"",  // notification title
+			      notificationObj.body?notificationObj.body:""  // notification body text
+			    );
+			TFMEX.notificationQueue.push(notification);
+		    notification.show();
+		    setTimeout(function(){
+				var lastNotification = TFMEX.notificationQueue.pop();
+		        notification.cancel();
+		    }, notificationObj.timeout);
+		}
     },
     updateNowPlaying = function(songObj) {
         var lfmSessionToken = $("body").attr("data-lastfm-session-token");
@@ -496,4 +506,9 @@ function setupLive(){
         parent.slideUp('fast', parent.remove);
         delete TFMEX.prefs.autoKickUsers[userId];
     });
+	$('.setEnableScrobbling').live('click', function(evt) {
+		console.log(evt);
+		evt.preventDefault();
+		TFMEX.$body.attr("data-enable-scrobbling", true);
+	});
 }

@@ -8,18 +8,22 @@
 		cancelScrobble = false;
 	
 	chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	    if (request.method == "getToken")
-	      sendResponse(localStorage['lastfm-token']);
-		else if (request.method == "getSession")
-			sendResponse(localStorage['lastfm-session-token'])
-		else if (request.method == "createSession")
+	    if (request.method == "getToken") {
+			sendResponse(localStorage['lastfm-token']);
+		} else if (request.method == "getSession") {
+			sendResponse(localStorage['lastfm-session-token']);
+		} else if (request.method == "createSession") {
 			create_session();
-		else if (request.method == "nowPlaying")
+		} else if (request.method == "nowPlaying") {
 			nowPlaying(request.songObj,request.session_token);
-		else if (request.method == "setCancelScrobble")
+		} else if (request.method == "setCancelScrobble") {
 			setCancelScrobble(request.shouldCancel);
-	    else
-	      sendResponse(); // snub them.
+		} else if (request.method == "getAuthenticated") {
+			get_authenticated();
+		} else {
+			sendResponse(); // snub them.
+		}
+
 	});
 
 
@@ -141,7 +145,7 @@
 		var api_call ='auth.getSession';
 	  	var url = 'http://ws.audioscrobbler.com/2.0/';
 		var token = localStorage['lastfm-token'];
-		//console.log("api_key"+api_key+api_call+"token"+token+api_secret);
+		// console.log("api_key"+api_key+api_call+"token"+token+api_secret);
 		
 		api_sig = hex_md5("api_key"+api_key+"method"+api_call+"token"+token+api_secret);
 

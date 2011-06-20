@@ -9,9 +9,13 @@ var title_string,
 	api_secret = "371780d53d282c42b3e50229df3df313",
 	cancelScrobble = false;
 
-// console.log('TurntableScrobbler loaded.');
+console.log('TurntableScrobbler loaded.');
 
 check_for_authentication();
+
+$("body").bind("enableScrobbling", function() {
+	
+});
 
 function checkForChangeOld() {
 	//Uses the " started playing "Ayo For Yayo" by Andre Nickatina" string
@@ -46,6 +50,14 @@ function checkForChangeOld() {
 	}
 }
 
+function checkForScrobblingChange() {
+	console.log($("body").attr("data-enable-scrobbling"));
+	if($("body").attr("data-enable-scrobbling") === "true") {
+		$("body").attr("data-enable-scrobbling", "false");
+		get_authenticated();
+	}
+}
+
 function checkForChange() {
     var previous_song = current_song;
     current_song = $("body").attr("data-current-song-obj");
@@ -72,12 +84,19 @@ function get_authenticated() {
 	var callback = chrome.extension.getURL("authenticate.html");
   	var url = 'http://www.last.fm/api/auth/?api_key='+api_key+"&cb="+callback;
 
+	window.localStorage.removeItem("lastfm-session-token");
+	window.localStorage.removeItem("lastfm_token");
+	
 	javascript:window.open(url);
 }
 
 
 function check_for_authentication() {
 	chrome.extension.sendRequest({method: "getSession"}, function(token) {
+		if(!token || token === 'null') {
+			$("body").attr("data-scrobbling-disabled", true);
+			setInterval("checkForScrobblingChange()", 1000);
+		}
 		localStorage["lastfm-session-token"] = token;
 		// console.log("SETTING TOKEN:", token);
 		$("body").attr("data-lastfm-session-token", token);
@@ -86,20 +105,15 @@ function check_for_authentication() {
 		// console.log("token: ", $("body").attr("data-lastfm-session-token"));
 	});
 	
-	//console.log(token);
 	
-	if (!localStorage["lastfm-session-token"]) {
-		window.localStorage.removeItem("lastfm-session-token");
-		window.localStorage.removeItem("lastfm_token");
+	if (localStorage["lastfm-session-token"]) {
 		
-		get_authenticated();
-		// console.log("No authentication token.  Resolving that.");
-	} else {
 		// console.log("Found authentication token.  Moving on.");
 				
 		setInterval("checkForChange()",1000);
 		lastfm_token = localStorage["lastfm_token"];
 		lastfm_session_token = localStorage["lastfm-session-token"];
+		
 	}
 }
 
