@@ -218,7 +218,7 @@ $(document).ready(function() {
         $("#tfmExtended .preferences").addClass("hidden");
     },
     desktopAlert = function(notificationObj) {
-	    if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
+	    if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
 		    var notification = webkitNotifications.createNotification(
 			      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
 			      notificationObj.title?notificationObj.title:"",  // notification title
