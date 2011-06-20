@@ -1,5 +1,7 @@
 A Bookmarklet to add functionality to turntable.fm
 
+This is the home of the source code, if you're just interested in installing the Chrome Extension, it's available for free on the Chrome Web Store here: https://chrome.google.com/webstore/detail/mnciafhfaahhafklckmcabbncbgcjpeg
+
 Current Features include:
 
     HTML5 Desktop Notifications for the following: (Chrome Only)
