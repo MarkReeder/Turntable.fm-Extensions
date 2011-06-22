@@ -205,6 +205,14 @@ $(document).ready(function() {
         preferencesContent += '<dt>Auto-Kick?</dt>';
         preferencesContent += '<dd><input type="checkbox" id="autoKick" data-tfmex-pref="autoKick" value="0" /></dd>';
         preferencesContent += '</dl>';
+        preferencesContent += '<div class="clL">';
+        preferencesContent += '  <select id="selectLaptop">';
+        preferencesContent += '    <option value="win">Windows</option>';
+        preferencesContent += '    <option value="mac">Macintosh</option>';
+        preferencesContent += '    <option value="linux">Linux</option>';
+        preferencesContent += '  </select>';
+        preferencesContent += '  <input type="button" id="selectLaptopButton" value="Change Laptop" onclick="window.turntable.sendMessage({api: "user.modify",laptop: $("selectLaptop").value});" />';
+        preferencesContent += '</div>';
         preferencesContent += '<div class="clL" id="modifyAutoKick">Modify Auto-Kick List</div>';
         
         if(TFMEX.votelog.length === 0 && typeof(window.turntable.topViewController.upvoters) !== "undefined" && window.turntable.topViewController.upvoters.length > 0) {
