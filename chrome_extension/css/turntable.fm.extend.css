@@ -19,3 +19,8 @@
 #autoKickUserPrefs label { left: 5px; position: relative; }
 #autoKickUserPrefs .marginfive { margin: 0 5px; }
 #autoKickUserPrefs a { font-size: 16px }
+
+#right-panel .matchesRecentlyPlayedExactly { background-color: #faa; }
+#right-panel .matchesRecentlyPlayedArtist { background-color: #ffa; }
+#right-panel .matchesRecentlyPlayedSongTitle { background-color: #ffd5aa; }
+#right-panel .matchesRecentlyPlayedExactly.topSong { background-color: #FEE8AF; }

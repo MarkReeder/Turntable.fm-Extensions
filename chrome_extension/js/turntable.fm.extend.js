@@ -56,7 +56,7 @@ TFMEX.notificationQueue = [];
 $(document).ready(function() {
     try {
     // $("script[href$='turntable.fm.extend.dev.js']").remove();
-	$(window).bind('beforeunload', TFMEX.clearNotifications);
+	// $(window).bind('beforeunload', TFMEX.clearNotifications);
     $("#tfmExtended").remove();
     TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="gear"></div><div class="preferences hidden"></div></div></div>');
     $("#tfmExtended .gear").click(function(){
@@ -85,6 +85,7 @@ $(document).ready(function() {
 	enableDesktopNotifications();
     var songMetadata = {},
 		lastSongMetadata = {},
+		lastRoomUrl = "",
         songVotes = [],
         voteMap = {
             "up": "Awesome",
@@ -98,12 +99,51 @@ $(document).ready(function() {
 	    "add_dj": "just stepped up to",
 	    "rem_dj": "just stepped down from"
 	},
+	highlightMatchingTracks = function(songToMatch, $songQueue) {
+		for(j in turntable.playlist.files) {
+			playlistSong = turntable.playlist.files[j];
+			if(songToMatch._id === playlistSong.fileId ||
+				(songToMatch.metadata.artist === playlistSong.metadata.artist && songToMatch.metadata.song === playlistSong.metadata.song)) {
+				$($songQueue[j]).addClass("matchesRecentlyPlayedExactly");
+			} else if(songToMatch.metadata.artist === playlistSong.metadata.artist) {
+				$($songQueue[j]).addClass("matchesRecentlyPlayedArtist");
+			} else if(songToMatch.metadata.song === playlistSong.metadata.song) {
+				$($songQueue[j]).addClass("matchesRecentlyPlayedSongTitle");
+			}
+		}
+	},
+	getRoomInfo = function() {
+		// console.log("in getRoomInfo()");
+		
+		var deferredInfo = $.when(turntable.sendMessage({
+			api: "room.info",
+			roomid: turntable.topViewController.roomId
+		}))
+		
+		deferredInfo.done(function(info){
+			var i, j, song, playlistSong, startTime, songQueue;
+			$songQueue = $("#right-panel .songlist .song");
+			$songQueue.removeClass("matchesRecentlyPlayedExactly");
+			$songQueue.removeClass("matchesRecentlyPlayedArtist");
+			$songQueue.removeClass("matchesRecentlyPlayedSongTitle");
+			for(i in info.room.metadata.songlog) {
+				song = info.room.metadata.songlog[i];
+				highlightMatchingTracks(song, $songQueue);
+				/* Log these into a local indexedDB
+				startTime = song.starttime;
+				delete song.starttime;
+				*/
+				// console.log(startTime, song);
+			}
+		});
+	},
 	attachListeners = function() {
 		// console.log("in attachListeners");
         var intervalID = window.setInterval(function() {
 			// console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
             if(window.turntable.eventListeners.message.length) {
 				// console.log("attaching listeners");
+				getRoomInfo();
                 window.turntable.addEventListener("message", extensionEventListener);
                 window.turntable.addEventListener("soundstart", extensionEventListener);
                 window.clearInterval(intervalID);
@@ -115,14 +155,22 @@ $(document).ready(function() {
 		var tempSongMetadata = null;
 		try {
 			lastSongMetadata = songMetadata;
-			songMetadata = window.turntable.topViewController.currentSong.metadata;
-		    if(songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist) {
-				// console.log("Found a change!");
-				updateNowPlaying(songMetadata);
-		    } else {
-		        return;
-		    }
-		} catch(e) {}
+			if(lastRoomUrl !== window.location.href) {
+				if(lastRoomUrl !== "") {
+					getRoomInfo();
+				}
+				lastRoomUrl = window.location.href;
+			}
+			if(window.turntable.topViewController.currentSong) {
+				songMetadata = window.turntable.topViewController.currentSong.metadata;
+			    if(songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist) {
+					// console.log("Found a change!");
+					updateNowPlaying(songMetadata);
+			    } else {
+			        return;
+			    }
+			}
+		} catch(e) { }
 	},
 	cleanUp = function() {
 		for(var eventListener in window.turntable.eventListeners.message) {
@@ -224,22 +272,27 @@ $(document).ready(function() {
 			      notificationObj.title?notificationObj.title:"",  // notification title
 			      notificationObj.body?notificationObj.body:""  // notification body text
 			    );
-			TFMEX.notificationQueue.push(notification);
+			// TFMEX.notificationQueue.push(notification);
 		    notification.show();
 		    setTimeout(function(){
-				var lastNotification = TFMEX.notificationQueue.pop();
+				// var lastNotification = TFMEX.notificationQueue.pop();
 		        notification.cancel();
 		    }, notificationObj.timeout);
+		} else {
+			// console.log("Discarded desktop alert, don't have proper permission.")
 		}
     },
     updateNowPlaying = function(songObj) {
-        var lfmSessionToken = $("body").attr("data-lastfm-session-token");
-		
+        var lfmSessionToken = $("body").attr("data-lastfm-session-token"),
+			songToMatch = {};
+		songToMatch.metadata = songObj;
 		// console.log("updateNowPlaying: ", songObj);
 		
         TFMEX.votelog = [];
 		
 		try {
+			
+		highlightMatchingTracks(songToMatch, $("#right-panel .songlist .song"));
         if(TFMEX.prefs.showSong) {
 			// console.log("About to show song: ", songObj);
 			setTimeout(function() {
@@ -407,7 +460,6 @@ try {
     $(window).bind("popstate", function (b) {
 		/*
 		console.log("popstate: ", b);
-		alert("popstate");
 		*/
         cleanUp();
         attachListeners();
@@ -415,7 +467,6 @@ try {
     $(window).bind("pushstate", function (b) {
 		/*
 		console.log("pushstate: ", b);
-		alert("pushstate");
 		*/
         cleanUp();
         attachListeners();
