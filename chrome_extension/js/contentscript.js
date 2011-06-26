@@ -51,7 +51,7 @@ function checkForChangeOld() {
 }
 
 function checkForScrobblingChange() {
-	console.log($("body").attr("data-enable-scrobbling"));
+	//console.log($("body").attr("data-enable-scrobbling"));
 	if($("body").attr("data-enable-scrobbling") === "true") {
 		$("body").attr("data-enable-scrobbling", "false");
 		get_authenticated();
