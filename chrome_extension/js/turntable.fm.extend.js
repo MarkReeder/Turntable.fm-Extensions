@@ -114,8 +114,10 @@ $(document).ready(function() {
 	},
 	getRoomInfo = function() {
 		// console.log("in getRoomInfo()");
+	    var messageFunctionName = turntable.randomRoom.toString().match(/(turntable\.)([^(]+)(\(\{api:)/)[2]
+	    var messageFunc = eval("turntable." + messageFunctionName)	
 		
-		turntable.XFosB({
+		messageFunc({
 			api: "room.info",
 			roomid: turntable.topViewController.roomId
 		}, function(info){
