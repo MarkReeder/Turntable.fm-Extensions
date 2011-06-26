@@ -9,7 +9,7 @@ var title_string,
 	api_secret = "371780d53d282c42b3e50229df3df313",
 	cancelScrobble = false;
 
-console.log('TurntableScrobbler loaded.');
+// console.log('TurntableScrobbler loaded.');
 
 check_for_authentication();
 
@@ -51,7 +51,7 @@ function checkForChangeOld() {
 }
 
 function checkForScrobblingChange() {
-	console.log($("body").attr("data-enable-scrobbling"));
+	// console.log($("body").attr("data-enable-scrobbling"));
 	if($("body").attr("data-enable-scrobbling") === "true") {
 		$("body").attr("data-enable-scrobbling", "false");
 		get_authenticated();

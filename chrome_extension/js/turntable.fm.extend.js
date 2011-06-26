@@ -46,7 +46,7 @@ TFMEX.clearNotifications = function() {
 	var notifciation = null;
 	while(TFMEX.notificationQueue.length) {
 		notification = TFMEX.notificationQueue.pop();
-		console.log(notification);
+		// console.log(notification);
 		notification.cancel();
 	}
 }
@@ -100,14 +100,26 @@ $(document).ready(function() {
 	    "rem_dj": "just stepped down from"
 	},
 	highlightMatchingTracks = function(songToMatch, $songQueue) {
+		var normalizeText = function(incomingText) {
+			var parsedText, alphaNumericText;
+			
+			parsedText = incomingText.toLowerCase();
+			alphaNumericText = parsedText.replace(/[^a-zA-Z 0-9]+/g,'');
+			if(alphaNumericText === "") {
+				return parsedText;
+			} else {
+				return alphaNumericText;
+			}
+		}
 		for(j in turntable.playlist.files) {
 			playlistSong = turntable.playlist.files[j];
 			if(songToMatch._id === playlistSong.fileId ||
-				(songToMatch.metadata.artist === playlistSong.metadata.artist && songToMatch.metadata.song === playlistSong.metadata.song)) {
+				(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)
+				 && normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song))) {
 				$($songQueue[j]).addClass("matchesRecentlyPlayedExactly");
-			} else if(songToMatch.metadata.artist === playlistSong.metadata.artist) {
+			} else if(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)) {
 				$($songQueue[j]).addClass("matchesRecentlyPlayedArtist");
-			} else if(songToMatch.metadata.song === playlistSong.metadata.song) {
+			} else if(normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song)) {
 				$($songQueue[j]).addClass("matchesRecentlyPlayedSongTitle");
 			}
 		}
@@ -165,6 +177,7 @@ $(document).ready(function() {
 				songMetadata = window.turntable.topViewController.currentSong.metadata;
 			    if(songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist) {
 					// console.log("Found a change!");
+					lastSongMetadata = songMetadata;
 					updateNowPlaying(songMetadata);
 			    } else {
 			        return;
@@ -267,6 +280,7 @@ $(document).ready(function() {
     },
     desktopAlert = function(notificationObj) {
 	    if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
+			// console.log("Have permissions, setting up desktop alert.");
 		    var notification = webkitNotifications.createNotification(
 			      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
 			      notificationObj.title?notificationObj.title:"",  // notification title
@@ -297,9 +311,14 @@ $(document).ready(function() {
 			// console.log("About to show song: ", songObj);
 			setTimeout(function() {
 				// console.log("Show Song: ", songMetadata);
-				var title = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name + " is spinning:",
+				var title = "",
+					djName = "",
                     coverArt = songMetadata.coverart?songMetadata.coverart:"",
                     body = songMetadata.artist + " - " + songMetadata.song;
+				try {
+					djName = window.turntable.topViewController.users[window.turntable.topViewController.roomManager.current_dj[0]].name;
+				} catch(e) {}
+				title = djName + " is spinning:";
                 desktopAlert({
                     title: title,
                     image: coverArt,
@@ -332,7 +351,7 @@ $(document).ready(function() {
             } catch(e) { console.error(e.message); }
         } else {
             // console.log("no lfm session, retry");
-            window.setTimeout(function() { updateNowPlaying(songObj); }, 250);
+            // window.setTimeout(function() { updateNowPlaying(songObj); }, 250); // Causing tons of duplicate alerts
         }
     },
 	updateUserList = function() {
@@ -358,7 +377,7 @@ $(document).ready(function() {
 		
 		// console.log("m.command", m.command);
         if(typeof(m.command) !== "undefined") {
-			// console.log(m.command, TFMEX.prefs);
+			// console.log("m.command: ", m.command, TFMEX.prefs);
             switch(m.command) {
                 case "newsong":
                     try {
@@ -489,7 +508,7 @@ function setupAutoKickPrefs(){
     autoKickPrefs += '</ul>';
     autoKickPrefs += '</div>';
     autoKickPrefs += '</div>';
-    console.log(autoKickPrefs);
+    // console.log(autoKickPrefs);
     $('#overlay').html(autoKickPrefs);
     $('#overlay').show();
     $('.close-x').click(function(){
@@ -502,15 +521,17 @@ function setupAutoKickPrefs(){
         var foundUser = false;
         for (var userId in users){
             if (users[userId].name == username){
-                console.log('found user!');
+                // console.log('found user!');
                 var user = users[userId],
                     shitlist = TFMEX.prefs.autoKickUsers,
                     newlyAdded = true;
                 for (var cmpUserId in shitlist){
+					/*
                     console.log('---------------');
                     console.log(userId);
                     console.log(cmpUserId);
                     console.log('===============');
+					*/
                     if (userId === cmpUserId){
                         newlyAdded = false;
                     }
@@ -544,21 +565,21 @@ function generateAutoKickLi(username, userId){
     return autoKickPrefs;
 }
 function setupLive(){
-    console.log('setup');
+    // console.log('setup');
     $('.viewNotesAutoKickUser').live('click', function(evt){
         evt.preventDefault();
     });
     $('.removeAutoKickUser').live('click', function(evt){
         evt.preventDefault();
-        console.log(evt);
-        console.log(evt.currentTarget);
+        // console.log(evt);
+        // console.log(evt.currentTarget);
         var parent = $(evt.currentTarget).parent(),
             userId = parent.data('userid');
         parent.slideUp('fast', parent.remove);
         delete TFMEX.prefs.autoKickUsers[userId];
     });
 	$('.setEnableScrobbling').live('click', function(evt) {
-		console.log(evt);
+		// console.log(evt);
 		evt.preventDefault();
 		TFMEX.$body.attr("data-enable-scrobbling", true);
 	});
