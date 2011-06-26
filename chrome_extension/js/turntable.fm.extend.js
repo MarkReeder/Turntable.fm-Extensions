@@ -119,7 +119,6 @@ $(document).ready(function() {
 			api: "room.info",
 			roomid: turntable.topViewController.roomId
 		}, function(info){
-            console.log("In deferred info: " + info)
 			var i, j, song, playlistSong, startTime, songQueue;
 			$songQueue = $("#right-panel .songlist .song");
 			$songQueue.removeClass("matchesRecentlyPlayedExactly");
@@ -310,7 +309,7 @@ $(document).ready(function() {
     			// console.log("Not displaying song change notification: ", TFMEX.prefs);
     		}
 		
-    		if(TFMEX.prefs.autoÏAwesome) {
+    		if(TFMEX.prefs.autoAwesome) {
     			// console.log("About to auto awesome the current track.");
     			setTimeout(function() {
     				// console.log("AWESOME!");
