@@ -191,6 +191,7 @@ $(document).ready(function() {
 					$songQueue.removeClass("matchesRecentlyPlayedExactly");
 					$songQueue.removeClass("matchesRecentlyPlayedArtist");
 					$songQueue.removeClass("matchesRecentlyPlayedSongTitle");
+					TFMEX.songlog = info.room.metadata.songlog;
 					for(i in info.room.metadata.songlog) {
 						song = info.room.metadata.songlog[i];
 						highlightMatchingTracks(song, $songQueue);
@@ -223,6 +224,7 @@ $(document).ready(function() {
 				lastSongMetadata = songMetadata;
 				if(lastRoomUrl !== window.location.href) {
 					if(lastRoomUrl !== "") {
+						cleanUp();
 						$.when(getTurntableObjects()).then(whenTurntableObjectsReady);
 					}
 					lastRoomUrl = window.location.href;
@@ -241,10 +243,15 @@ $(document).ready(function() {
 		},
 		cleanUp = function() {
 			for(var eventListener in window.turntable.eventListeners.message) {
-				// console.log("eventListener: ", window.turntable.eventListeners.message[eventListener]);
+				if(window.turntable.eventListeners.message[eventListener] && window.turntable.eventListeners.message[eventListener].toString() !== undefined) {
+					window.turntable.eventListeners.message.splice(eventListener, 1);
+				}
 			}
-			// window.turntable.eventListeners.message = [];
-	        // window.turntable.eventListeners.soundstart = [];
+			for(var eventListener in window.turntable.eventListeners.soundstart) {
+				if(window.turntable.eventListeners.soundstart[eventListener] && window.turntable.eventListeners.soundstart[eventListener].toString() !== undefined) {
+					window.turntable.eventListeners.soundstart.splice(eventListener, 1);
+				}
+			}
 		},
 	    showPrefs = function() {
 	        var preferencesContent = "",
@@ -330,6 +337,7 @@ $(document).ready(function() {
 	        $("#tfmExtended .preferences").addClass("hidden");
 	    },
 	    desktopAlert = function(notificationObj) {
+			// console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
 		    if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
 				// console.log("Have permissions, setting up desktop alert.");
 			    var notification = webkitNotifications.createNotification(
@@ -359,12 +367,11 @@ $(document).ready(function() {
 	    		highlightMatchingTracks(songToMatch, $("#right-panel .songlist .song"));
 	            if(TFMEX.prefs.showSong) {
 	    			// console.log("About to show song: ", songObj);
-					/*
 	    			setTimeout(function() {
 	    				// console.log("Show Song: ", songMetadata);
 	    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is spinning:",
-	                        coverArt = songMetadata.coverart?songMetadata.coverart:"",
-	                        body = songMetadata.artist + " - " + songMetadata.song;
+	                        coverArt = songObj.coverart?songObj.coverart:"",
+	                        body = songObj.artist + " - " + songObj.song;
 	                    desktopAlert({
 	                        title: title,
 	                        image: coverArt,
@@ -372,7 +379,6 @@ $(document).ready(function() {
 	                        timeout: TFMEX.prefs.messageTimeout
 	                    });
 	    			}, 500);
-					*/
 	            } else {
 	    			// console.log("Not displaying song change notification: ", TFMEX.prefs);
 	    		}
@@ -462,7 +468,7 @@ $(document).ready(function() {
 	                case "update_votes":
 	                    TFMEX.votelog = m.room.metadata.votelog;
 	                    var currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
-						if(currentVote[0] === TFMEX.roomInfo.roomManager.myuserid) {
+						if(currentVote[0] === TFMEX.roommanager.myuserid) {
 							if(currentVote[1] == "down") {
 								$("body").attr("data-cancel-scrobble", true);
 							} else {
@@ -487,24 +493,21 @@ $(document).ready(function() {
 	            // console.log("Command Undefined");
 	        }
 	    }
+		extensionEventListener.prototype.TFMEXListener = true;
 	} catch(e) { console.error(e); }
 
 	try {
 		attachListeners();
+		/*
 	    $(window).bind("popstate", function (b) {
-			/*
-			console.log("popstate: ", b);
-			*/
 	        cleanUp();
 	        attachListeners();
 	    });
 	    $(window).bind("pushstate", function (b) {
-			/*
-			console.log("pushstate: ", b);
-			*/
 	        cleanUp();
 	        attachListeners();
 	    });
+		*/
 	} catch(e) { console.error(e.message); }
 	};
 	$.when(getTurntableObjects()).then(whenTurntableObjectsReady);
