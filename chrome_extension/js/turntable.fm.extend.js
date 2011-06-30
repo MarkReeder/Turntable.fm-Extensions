@@ -51,11 +51,11 @@ TFMEX.suggestionsOverlayView = function() {
 		],
 		[
 			"h2",
-			"Some suggestions"
+			"Some Suggestions For You"
 		],
 		[
 			"p",
-			"These are based on the current song."
+			"They are based on the current song."
 		],
 		[
 			"div##songs.tt-ext-suggested-songs"					
@@ -191,28 +191,34 @@ $(document).ready(function() {
 		$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
 			//var similarSongs = $('body').data('similarSongs')
 			var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
+			$('#tt-ext-suggestions-link').fadeIn(500)
 			if (songs.length > 0) {
 				console.log("Found",songs.length,"similar songs.")
-				$('#tt-ext-suggestions-link').fadeIn(500)				
+				$('#tt-ext-suggestions-link').removeClass("tt-ext-link-disabled")
+				$('#tt-ext-suggestions-link').attr("title","View suggestions from last.fm")
 			} else {
-				console.log("No related songs available for",songMetadata.artist,". Hiding suggestions link.")
-				$('#tt-ext-suggestions-link').fadeOut(500)
+				console.log("No related songs available for",songMetadata.artist,". Disabling suggestions link.")
+				$('#tt-ext-suggestions-link').addClass("tt-ext-link-disabled")
+				$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are availble for this song.")
 			}
 		});
 		$('#tt-ext-suggestions-link').live('click', function() {
 				//$('#tt-ext-suggestions-box').dialog()
-				var containers = {}
-				var suggestionsMarkup = util.buildTree(TFMEX.suggestionsOverlayView(),containers)
-				var songContainer = containers.songs
-				
 				var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
-				$.each(songs,function(index, song) {
-					var tree = TFMEX.suggestedSongView(song)
-					var songMarkup = util.buildTree(tree)
-					$(songContainer).append(songMarkup)
-				})
+
+				if (songs.length > 0) {				
+					var containers = {}
+					var suggestionsMarkup = util.buildTree(TFMEX.suggestionsOverlayView(),containers)
+					var songContainer = containers.songs
+								
+					$.each(songs,function(index, song) {
+						var tree = TFMEX.suggestedSongView(song)
+						var songMarkup = util.buildTree(tree)
+						$(songContainer).append(songMarkup)
+					})
 				
-				turntable.showOverlay(suggestionsMarkup)				
+					turntable.showOverlay(suggestionsMarkup)
+				}				
 		});
 		$('.tt-ext-suggested-song .tt-ext-search-link').live('click', function(evt) {
 				var searchBox = $('form.input.songSearch input')

@@ -28,6 +28,7 @@
 #tt-ext-mpd {display:none;}
 
 #tt-ext-suggestions-link {display:none;margin-top:5px;font-size:14px;text-align:right;margin-right:3px;color:#2E9AEB;cursor:pointer;}
+#tt-ext-suggestions-link.tt-ext-link-disabled {color:gray;cursor:default;}
 #tt-ext-suggestions-box {display:none;background-color:white;width:400px;}
 
 .tt-ext-suggested-songs {text-align:left;margin:15px auto 0 auto;text-shadow:none;}
