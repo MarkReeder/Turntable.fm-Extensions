@@ -11,11 +11,43 @@ var title_string,
 
 // console.log('TurntableScrobbler loaded.');
 
+var messagePassingContainer = $("<div/>").attr("id","tt-ext-mpd").appendTo("body")
+messagePassingContainer[0].addEventListener('tt-ext-new-song-event', function() {
+    processNewSong(JSON.parse($("body").attr("data-current-song-obj")));
+});
+
 check_for_authentication();
 
 $("body").bind("enableScrobbling", function() {
 	
 });
+
+function processNewSong(songMetadata) {
+    populateSimilarSongs(songMetadata)
+    //get events for this artist?
+}
+
+function createSuggestedSongsMarkup() {
+    if ( $('#tt-ext-suggestions-link').length == 0) {
+        $("<div>Suggestions</div>").attr("id","tt-ext-suggestions-link").appendTo("#playlist > .black-right-header");
+    }
+	if ( $('#tt-ext-suggestions-box').length == 0) {
+		$("<div />").attr("id","tt-ext-suggestions-box").appendTo('body')
+	}
+}
+
+function populateSimilarSongs(songMetadata) {
+    createSuggestedSongsMarkup();
+    console.log("In populateSimilarSongs with artist:",songMetadata.artist)
+	var suggestionsBox = $('#tt-ext-suggestions-box').empty()
+    chrome.extension.sendRequest({method: "findSimilarSongs", "songMetadata" : songMetadata}, function(response) {
+		//send songs to injected script
+		$('body').attr('tt-ext-similar-songs',response)
+		var customEvent = document.createEvent('Event');
+		customEvent.initEvent('tt-ext-process-similar-songs', true, true);
+		$('#tt-ext-mpd')[0].dispatchEvent(customEvent)
+    });
+}
 
 function checkForChangeOld() {
 	//Uses the " started playing "Ayo For Yayo" by Andre Nickatina" string
