@@ -196,11 +196,14 @@ function find_similar_songs(songMetadata,sendResponse) {
 	var url = 'http://ws.audioscrobbler.com/2.0/'
 	$.get(url,params,function(data) {		  
 		var songsByOtherArtists = []
-		$.each(data.similartracks.track, function(index, trackInfo) {
-			if (trackInfo.artist.name != songMetadata.artist) {
-				songsByOtherArtists.push(trackInfo)
-			}
-		});
+		var type = $.type(data.similartracks.track)
+		if (type !== "string") { //sometimes last.fm returns weird data.
+			$.each(data.similartracks.track, function(index, trackInfo) {
+				if (trackInfo.artist.name != songMetadata.artist) {
+					songsByOtherArtists.push(trackInfo)
+				}
+			});
+		}
 		
 		console.log("find_similar_songs: Sending",songsByOtherArtists.length,"songs to the content script.")
 		sendResponse(JSON.stringify(songsByOtherArtists))
