@@ -4,7 +4,8 @@ TFMEX = {};
   turntable.fm extend
   
   Developed by:
-    Mark Reeder http://twitter.com/Mark_Reeder
+    Mark Reeder http://twitter.com/Mark_Reeder, http://github.com/MarkReeder
+    Adam Creeger http://twitter.com/Creeger, http://github.com/acreeger
 */
 
 
