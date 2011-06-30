@@ -35,7 +35,10 @@ TFMEX.suggestionsOverlayView = function() {
 		"div.modal.suggestionsOverlay",
 		{
 			style: {
-				width:"500px"
+				width:"590px",
+				"padding-left":0,
+				"padding-right":0,
+				"padding-bottom":0			 
 			}
 		},
 		[
