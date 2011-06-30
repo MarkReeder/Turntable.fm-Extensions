@@ -206,6 +206,8 @@ $(document).ready(function() {
 			} catch(e) {}
 		},
 		attachListeners = function() {
+			var numMessageListeners = 0,
+				numSoundstartListeners = 0;
 			// console.log("in attachListeners");
 			cleanUp();
 	        var intervalID = window.setInterval(function() {
@@ -213,8 +215,23 @@ $(document).ready(function() {
 	            if(window.turntable.eventListeners.message.length) {
 					// console.log("attaching listeners");
 					getRoomInfo();
-	                window.turntable.addEventListener("message", extensionEventListener);
-	                window.turntable.addEventListener("soundstart", extensionEventListener);
+					
+					for(var eventListener in window.turntable.eventListeners.message) {
+						if(window.turntable.eventListeners.message[eventListener] && window.turntable.eventListeners.message[eventListener].toString() !== undefined) {
+							numMessageListeners += 1;
+						}
+					}
+					for(var eventListener in window.turntable.eventListeners.soundstart) {
+						if(window.turntable.eventListeners.soundstart[eventListener] && window.turntable.eventListeners.soundstart[eventListener].toString() !== undefined) {
+							numSoundstartListeners += 1;
+						}
+					}
+					if(!numMessageListeners) {
+	                	window.turntable.addEventListener("message", extensionEventListener);
+					}
+					if(!numSoundstartListeners) {
+	                	window.turntable.addEventListener("soundstart", extensionEventListener);
+					}
 	                window.clearInterval(intervalID);
 					setInterval(checkForChange,1000);
 	            }
@@ -245,6 +262,9 @@ $(document).ready(function() {
 		},
 		cleanUp = function() {
 			// console.log(window.turntable.eventListeners);
+			
+			// Moved this logic to the attachListeners function
+			/*
 			for(var eventListener in window.turntable.eventListeners.message) {
 				if(window.turntable.eventListeners.message[eventListener] && window.turntable.eventListeners.message[eventListener].toString() !== undefined) {
 					// console.log("REMOVING:", window.turntable.eventListeners.message[eventListener]);
@@ -257,7 +277,22 @@ $(document).ready(function() {
 					window.turntable.eventListeners.soundstart.splice(eventListener, 1);
 				}
 			}
+			*/
 			// console.log(window.turntable.eventListeners);
+			updatePrefs();
+		},
+		updatePrefs = function() {
+			// console.log("TFMEX.prefs", TFMEX.prefs);
+			preferenceSettings = localStorage.getItem("TFMEX");
+			if(preferenceSettings) {
+			    preferenceSettings = JSON.parse(preferenceSettings);
+			    $.extend(TFMEX.prefs, preferenceSettings);
+			    preferenceSettings = TFMEX.prefs;
+			} else {
+			    preferenceSettings = TFMEX.prefs;
+			}
+		    // TFMEX.prefs = preferenceSettings;
+			// console.log(TFMEX.prefs);
 		},
 	    showPrefs = function() {
 	        var preferencesContent = "",
@@ -312,19 +347,13 @@ $(document).ready(function() {
 	        preferencesContent += '<div class="clB">&nbsp;</div>';
 	        $("#tfmExtended .preferences").html(preferencesContent);
 	        $("#tfmExtended .preferences").removeClass("hidden");
-			preferenceSettings = localStorage.getItem("TFMEX");
-			if(preferenceSettings) {
-			    preferenceSettings = JSON.parse(preferenceSettings);
-			    $.extend(TFMEX.prefs, preferenceSettings);
-			    preferenceSettings = TFMEX.prefs;
-			} else {
-			    preferenceSettings = TFMEX.prefs;
-			}
+	
+			updatePrefs();
 
-	        for (var prefName in preferenceSettings) {
-	            if (preferenceSettings.hasOwnProperty(prefName)) {
+	        for (var prefName in TFMEX.prefs) {
+	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
 	                $('#tfmExtended input[data-tfmex-pref=' + prefName + ']')
-	                    .attr('checked', preferenceSettings[prefName])
+	                    .attr('checked', TFMEX.prefs[prefName])
 	                    .change(function() {
 	                        var $this = $(this);
 	                        if($this.attr('checked')) {
@@ -336,14 +365,13 @@ $(document).ready(function() {
 	                    });
 	            }
 	        }
-	        TFMEX.prefs = preferenceSettings;
 			updateUserList();
 	    },
 	    hidePrefs = function() {
 	        $("#tfmExtended .preferences").addClass("hidden");
 	    },
 	    desktopAlert = function(notificationObj) {
-			console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
+			// console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
 		    if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
 				// console.log("Have permissions, setting up desktop alert.");
 			    var notification = webkitNotifications.createNotification(
