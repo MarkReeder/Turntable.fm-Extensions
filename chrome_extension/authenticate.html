@@ -1,20 +1,16 @@
 <script>
-	 chrome.tabs.getSelected(null,function(tab) {
-	 	var tablink = tab.url;
-	 	token = tablink.substr(tablink.indexOf('=')+1);
-	 	// alert(token);
-	 	// Save token to local storage
-	 	localStorage["lastfm-token"] = token;
-		// alert(localStorage["lastfm-token"]);
+	chrome.tabs.getSelected(null,function(tab) {
+		var tablink = tab.url;
+		token = tablink.substr(tablink.indexOf('=')+1);
+		console.debug("Authentication complete. Received last.fm token:",token)
+		localStorage["lastfm-token"] = token;
 	});
 	
-	// console.log("Requesting session token");
-	 chrome.extension.sendRequest({method: "createSession"}, function(session_token) {
-	 	localStorage["lastfm-session-token"] = session_token;	
+	console.debug("Calling createSession");
+	chrome.extension.sendRequest({method: "createSession"}, function(session_token) {
+		console.debug("Storing last.fm session:", session_token);
+		localStorage["lastfm-session-token"] = session_token;	
 		setInterval("checkForChange()",1000);
-	 	// console.log("Received session: "+session_token);
-	 });
+	});
 </script>
-
-
-Scrobbling is now configured.  Please refresh the Turntable.fm tab and feel free to close this tab.
+Scrobbling is now configured. You can now close this tab.
