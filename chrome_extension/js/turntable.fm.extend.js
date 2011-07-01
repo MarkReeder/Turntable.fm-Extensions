@@ -4,7 +4,8 @@ TFMEX = {};
   turntable.fm extend
   
   Developed by:
-    Mark Reeder http://twitter.com/Mark_Reeder
+    Mark Reeder http://twitter.com/Mark_Reeder, http://github.com/MarkReeder
+    Adam Creeger http://twitter.com/Creeger, http://github.com/acreeger
 */
 
 
@@ -29,6 +30,88 @@ TFMEX.clearNotifications = function() {
 
 TFMEX.votelog = [];
 TFMEX.notificationQueue = [];
+
+TFMEX.suggestionsOverlayView = function() {
+	return [
+		"div.modal.suggestionsOverlay",
+		{
+			style: {
+				width:"590px",
+				"padding-left":0,
+				"padding-right":0,
+				"padding-bottom":0			 
+			}
+		},
+		[
+			"div.close-x",
+			{
+				event: {
+					click: turntable.hideOverlay
+				}
+			} 
+		],
+		[
+			"h2",
+			"Some Suggestions For You"
+		],
+		[
+			"p",
+			"They are based on the current song."
+		],
+		[
+			"div##songs.tt-ext-suggested-songs"					
+		]
+	]
+}
+
+TFMEX.suggestedSongView = function(song) {
+	var a = {}
+	a.artist = song.artist.name
+	a.song = song.name
+	
+	return [
+		"div.tt-ext-suggested-song",
+		{
+			
+		},
+		[
+			"div",
+			[
+				"span.title",
+				{title:a.song},		
+				a.song
+			],
+			[
+				"span.tt-ext-search-link",
+				{
+					data: {
+						query: a.song + " " + a.artist
+					}						
+				},
+				"Search for this track"
+			]
+		],
+		[
+			"div",
+			[
+				"span.artist",
+				{},		
+				a.artist
+			],
+			[
+				"span.tt-ext-search-link",
+				{
+					data: {
+						query: a.artist
+					}						
+				},
+				"More by this artist"
+			]
+		]
+	]
+	 
+}
+
 $(document).ready(function() {
 	var tKeysLength = Object.keys(turntable).length,
 		lastPlayedSong = {};
@@ -44,7 +127,7 @@ $(document).ready(function() {
 			// console.log("attempting to resolve");
 			// console.log(Object.keys(turntable).length, tKeysLength);
 			// console.dir(turntable);
-		
+
 			for(var o in turntable) {
 				if(turntable[o] !== null) {
 					for(var o2 in turntable[o]) {
@@ -94,18 +177,63 @@ $(document).ready(function() {
 		console.log("TFMEX.roommanager", TFMEX.roommanager);
 		*/
 		
-	    try {
+		try {
 	    // $("script[href$='turntable.fm.extend.dev.js']").remove();
 		// $(window).bind('beforeunload', TFMEX.clearNotifications);
 	    $("#tfmExtended").remove();
 	    TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="gear"></div><div class="preferences hidden"></div></div></div>');
-	    $("#tfmExtended .gear").click(function(){
+		$("#tfmExtended .gear").click(function(){
 	        if($("#tfmExtended .preferences").hasClass("hidden")) {
 	            showPrefs();
 	        } else {
 	            hidePrefs();
 	        }
 	    });
+		$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
+			//var similarSongs = $('body').data('similarSongs')
+			var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
+			$('#tt-ext-suggestions-link').fadeIn(500)
+			if (songs.length > 0) {
+				console.log("Found",songs.length,"similar songs.")
+				$('#tt-ext-suggestions-link').removeClass("tt-ext-link-disabled")
+				$('#tt-ext-suggestions-link').attr("title","View suggestions from last.fm")
+			} else {
+				console.log("No related songs available for",songMetadata.artist,". Disabling suggestions link.")
+				$('#tt-ext-suggestions-link').addClass("tt-ext-link-disabled")
+				$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are availble for this song.")
+			}
+		});
+		$('#tt-ext-suggestions-link').live('click', function() {
+				//$('#tt-ext-suggestions-box').dialog()
+				var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
+
+				if (songs.length > 0) {				
+					var containers = {}
+					var suggestionsMarkup = util.buildTree(TFMEX.suggestionsOverlayView(),containers)
+					var songContainer = containers.songs
+								
+					$.each(songs,function(index, song) {
+						var tree = TFMEX.suggestedSongView(song)
+						var songMarkup = util.buildTree(tree)
+						$(songContainer).append(songMarkup)
+					})
+				
+					turntable.showOverlay(suggestionsMarkup)
+				}				
+		});
+		$('.tt-ext-suggested-song .tt-ext-search-link').live('click', function(evt) {
+				var searchBox = $('form.input.songSearch input')
+				if (searchBox.length == 0) {
+					console.warn("Couldn't find search box")
+					//TODO: showalert
+				}
+				else {
+					searchBox.val($(evt.target).data('query'))
+					$('form.input.songSearch').trigger('submit')
+					turntable.hideOverlay()
+				}
+								
+		});		
 		function enableDesktopNotifications() {
 		    if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
 		        TFMEX.$body.bind('click.enableDesktopNotify', function() {
@@ -126,11 +254,11 @@ $(document).ready(function() {
 			if (b) {
 				 var c = function(){}
 			     for (var a in b) {
-			          if (typeof b[a] == "function") {										
+			          if (typeof b[a] == "function") {
 						b[a].toString = c.toString;
 			         }
 			     }
-			 }			
+			 }
 		}
 		untrickify(window.turntable);
 		enableDesktopNotifications();
@@ -177,10 +305,9 @@ $(document).ready(function() {
 		},
 		getRoomInfo = function() {
 			// console.log("in getRoomInfo()");
-		    var messageFunctionName = turntable.randomRoom.toString().match(/(turntable\.)([^(]+)(\(\{api:)/)[2]
+			var messageFunc = getSendMessageFunction()
 			try {
 				// console.log("messageFunctionName", messageFunctionName);
-			    var messageFunc = eval("turntable." + messageFunctionName);
 
 				messageFunc({
 					api: "room.info",
@@ -253,12 +380,16 @@ $(document).ready(function() {
 				    if(songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist) {
 						// console.log("Found a change!");
 						lastSongMetadata = songMetadata;
+						$("body").attr("data-current-song-obj", JSON.stringify(songMetadata));
 						updateNowPlaying(songMetadata);
+						populateSimilarSongs(songMetadata);
 				    } else {
 				        return;
 				    }
 				}
-			} catch(e) { }
+			} catch(e) {
+				console.warn("Got an error whilst checking for changes: " + e)
+			}
 		},
 		cleanUp = function() {
 			// console.log(window.turntable.eventListeners);
@@ -428,7 +559,7 @@ $(document).ready(function() {
 		                // console.log("songMetadata", songObj);
 		                // console.log("lfm token:", lfmSessionToken);
 		                // console.log("sendRequest- nowPlaying", songObj, lfmSessionToken);
-		                $("body").attr("data-current-song-obj", JSON.stringify(songObj));
+
 		                // chrome.extension.sendRequest({method: "nowPlaying",trackObj: songObj, session_token: lfmSessionToken});
 		            } catch(e) { console.error(e.message); }
 		        }/* else {
@@ -447,6 +578,22 @@ $(document).ready(function() {
 	            }
 	        }	
 			$('#tfmExtended .preferences .currentUserList').html(userList);
+		},
+		populateSimilarSongs = function(songMetadata) {
+		    var title = songMetadata.song
+		    var artist = songMetadata.artist
+			var customEvent = document.createEvent('Event');
+			customEvent.initEvent('tt-ext-new-song-event', true, true);
+			document.getElementById('tt-ext-mpd').dispatchEvent(customEvent)
+		},
+		getSendMessageFunction = function() {
+			var messageFunctionName = $('body').data('tt-ext-messageFunctionName')
+			if (!messageFunctionName) {
+				messageFunctionName = turntable.randomRoom.toString().match(/(turntable\.)([^(]+)(\(\{api:)/)[2];
+				$('body').data('tt-ext-messageFunctionName',messageFunctionName)
+			}
+		    var messageFunc = eval("turntable." + messageFunctionName)
+			return messageFunc
 		},
 	    extensionEventListener = function(m){
 

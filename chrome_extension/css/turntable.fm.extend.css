@@ -24,3 +24,23 @@
 #right-panel .matchesRecentlyPlayedArtist { background-color: #ffa; }
 #right-panel .matchesRecentlyPlayedSongTitle { background-color: #ffd5aa; }
 #right-panel .matchesRecentlyPlayedExactly.topSong { background-color: #FEE8AF; }
+
+#tt-ext-mpd {display:none;}
+
+#tt-ext-suggestions-link {display:none;margin-top:5px;font-size:14px;text-align:right;margin-right:3px;color:#2E9AEB;cursor:pointer;}
+#tt-ext-suggestions-link.tt-ext-link-disabled {color:gray;cursor:default;}
+#tt-ext-suggestions-box {display:none;background-color:white;width:400px;}
+
+.tt-ext-suggested-songs {text-align:left;margin:15px auto 0 auto;text-shadow:none;}
+.tt-ext-suggested-song {margin:0 auto; padding: 5px 5px; background-color:white;border-bottom:1px solid #E6E6E6;}
+
+.tt-ext-suggested-song .title {font-size:15px;color:black;}
+.tt-ext-suggested-song .artist {font-size:13px;color:gray;}
+
+.tt-ext-suggested-song .tt-ext-search-link {color:#2E9AEB; font-size:12px;cursor:pointer;text-decoration:underline;float:right;padding:5px;}
+.tt-ext-suggested-song div {clear:right;}
+.tt-ext-suggested-song:nth-child(even) {background-color:#F0F0F0;} 
+.tt-ext-suggested-song:hover {background-color:#E3E3E3;}
+.suggestionsOverlay {width:500px;}
+
+// link color:  (orange)
