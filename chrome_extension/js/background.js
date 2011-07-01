@@ -4,7 +4,8 @@ var api_key = "62be1c8445c92c28e5b36f548c069f69",
 	session_id,
 	current_song,
 	scrobble_timer,
-	cancelScrobble = false;
+	cancelScrobble = false,
+	lastSimilarSongshMetadata = {};
 
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	console.log("In Listener: method is " + request.method)
@@ -186,28 +187,31 @@ function create_session() {
 
 function find_similar_songs(songMetadata,sendResponse) {
 	var params = {
-	    "method" : "track.getsimilar",
-	    "artist" : songMetadata.artist,
-	    "track" : songMetadata.song,
-	    "api_key" : api_key,
-		"limit" : "10",
-	    "format" : "json"
-	}
-	var url = 'http://ws.audioscrobbler.com/2.0/'
-	$.get(url,params,function(data) {		  
-		var songsByOtherArtists = []
-		var type = $.type(data.similartracks.track)
-		if (type !== "string") { //sometimes last.fm returns weird data.
-			$.each(data.similartracks.track, function(index, trackInfo) {
-				if (trackInfo.artist.name != songMetadata.artist) {
-					songsByOtherArtists.push(trackInfo)
-				}
-			});
-		}
+		    "method" : "track.getsimilar",
+		    "artist" : songMetadata.artist,
+		    "track" : songMetadata.song,
+		    "api_key" : api_key,
+			"limit" : "10",
+		    "format" : "json"
+		},
+		url = 'http://ws.audioscrobbler.com/2.0/';
+	if(songMetadata.artist !== lastSimilarSongshMetadata.artist || songMetadata.song !== lastSimilarSongshMetadata.song) { // Prevent multiple calls for the same data from being made
+		lastSimilarSongshMetadata = songMetadata;
+		$.get(url,params,function(data) {
+			var songsByOtherArtists = [];
+			var type = $.type(data.similartracks.track);
+			if (type !== "string") { //sometimes last.fm returns weird data.
+				$.each(data.similartracks.track, function(index, trackInfo) {
+					if (trackInfo.artist.name != songMetadata.artist) {
+						songsByOtherArtists.push(trackInfo);
+					}
+				});
+			}
 		
-		console.log("find_similar_songs: Sending",songsByOtherArtists.length,"songs to the content script.")
-		sendResponse(JSON.stringify(songsByOtherArtists))
-	});
+			console.log("find_similar_songs: Sending",songsByOtherArtists.length,"songs to the content script.");
+			sendResponse(JSON.stringify(songsByOtherArtists));
+		});
+	}
 }
 
 //////////Utils///////////

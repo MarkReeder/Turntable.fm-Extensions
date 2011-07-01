@@ -56,7 +56,7 @@ TFMEX.suggestionsOverlayView = function() {
 		],
 		[
 			"p",
-			"They are based on the current song."
+			"based on the current song"
 		],
 		[
 			"div##songs.tt-ext-suggested-songs"					
@@ -105,7 +105,7 @@ TFMEX.suggestedSongView = function(song) {
 						query: a.artist
 					}						
 				},
-				"More by this artist"
+				"Search for this artist"
 			]
 		]
 	]
@@ -194,11 +194,11 @@ $(document).ready(function() {
 			var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
 			$('#tt-ext-suggestions-link').fadeIn(500)
 			if (songs.length > 0) {
-				console.log("Found",songs.length,"similar songs.")
+				// console.log("Found",songs.length,"similar songs.")
 				$('#tt-ext-suggestions-link').removeClass("tt-ext-link-disabled")
 				$('#tt-ext-suggestions-link').attr("title","View suggestions from last.fm")
 			} else {
-				console.log("No related songs available for",songMetadata.artist,". Disabling suggestions link.")
+				// console.log("No related songs available for",songMetadata.artist,". Disabling suggestions link.")
 				$('#tt-ext-suggestions-link').addClass("tt-ext-link-disabled")
 				$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are availble for this song.")
 			}
