@@ -249,10 +249,34 @@ TFMEX.roomUsersView = function() {
 }
 
 TFMEX.roomUserView = function(user) {
-	return [
-		"div",
-		user.fbid !== "undefined" ? ["a",{href:'http://facebook.com/profile.php?id=' + user.fbid,target: "_blank"},user.name] : []
-	]
+	var userLink = null,
+		userVote = [],
+		userVoteText = "",
+		returnObj = null;
+	returnObj = [
+		"div"
+	];
+	returnObj.push(["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]);
+	if(user.fbid !== "undefined") {
+		returnObj.push(["a",{href:'http://facebook.com/profile.php?id=' + user.fbid,target: "_blank"},"on Facebook"]);
+	}
+	/* Insert upvote messages next to user names
+	for (var i in TFMEX.roomInfo.upvoters) {
+		if(TFMEX.roomInfo.upvoters[i] === user.userid) {
+			userVoteText = " voted: Awesome";
+		}
+    }
+	if(userVoteText !== "") {
+		userVote = ["span",{},userVoteText];
+		returnObj.push(userVote);
+	}
+	*/
+	return returnObj;
+}
+
+TFMEX.showUserProfile = function(userId) {
+	TFMEX.roommanager.callback('profile',userId);
+	turntable.hideOverlay();
 }
 
 $(document).ready(function() {

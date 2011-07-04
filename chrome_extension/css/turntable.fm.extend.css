@@ -52,7 +52,7 @@
 .tt-ext-suggested-song:hover, .tt-ext-room-users div:hover {background-color:#E3E3E3;}
 .suggestionsOverlay {width:500px;}
 
-.tt-ext-room-users {background-color:white;margin:15px auto 0 auto;text-shadow:none;text-align:center;max-height: 550px;overflow-y:scroll;}
-.tt-ext-room-users a {color:#2E9AEB; font-size:16px;padding:5px;}
+.tt-ext-room-users {background-color:white;color:#333;text-align:left;margin:15px auto 0 auto;text-shadow:none;max-height: 550px;overflow-y:scroll;}
+.tt-ext-room-users a {color:#2E9AEB; font-size:16px;padding:5px;margin-left:10px;}
 
 .tt-ext-welcome-message p {margin-top:15px}
