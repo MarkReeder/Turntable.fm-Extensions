@@ -1,10 +1,19 @@
 #tfmExtended { position: absolute; top: 0; left: 50%; margin-left: 380px; z-index: 999; width: 45px; }
 #tfmExtended .settings { position: relative; }
 #tfmExtended .settings .gear { position: absolute; width: 45px; height: 45px; background: url('http://globalplaylist.com/images/gear-32x32.png') no-repeat center center #646464; }
-#tfmExtended .preferences { width: 720px; margin-left: -760px; padding: 20px; background-color: #fff; min-height: 100px; position: relative; }
-#tfmExtended .preferences dl { width: 225px; }
-#tfmExtended .preferences dt { float: left; clear: both; margin-bottom: 10px; width: 210px; }
-#tfmExtended .preferences dd { float: right; clear: right; }
+/*#tfmExtended .preferences { width: 720px; margin-left: -760px; padding: 20px; background-color: #fff; min-height: 100px; position: relative; }*/
+.tt-ext-preferences {width:320px;}
+.tt-ext-preferences dl { text-align:left;}
+.tt-ext-preferences dt { float: left; clear: both; margin-bottom: 10px; width: 210px; }
+.tt-ext-preferences dd { float: right; clear: right; }
+.tt-ext-preferences .flL { float: left; }
+.tt-ext-preferences .clL { clear: left; }
+.tt-ext-preferences .flR { float: right; }
+.tt-ext-preferences .clB { clear: both; }
+.tt-ext-pref-section {margin-top:20px;width:300px;clear:both;}
+.tt-ext-pref-header {margin:10px auto;}
+.tt-ext-pref-body {font-size:16px}
+
 #tfmExtended .hidden { display: none; }
 #tfmExtended .clL { clear: left; }
 #tfmExtended .flL { float: left; }
@@ -39,8 +48,11 @@
 
 .tt-ext-suggested-song .tt-ext-search-link {color:#2E9AEB; font-size:12px;cursor:pointer;text-decoration:underline;float:right;padding:5px;}
 .tt-ext-suggested-song div {clear:right;}
-.tt-ext-suggested-song:nth-child(even) {background-color:#F0F0F0;} 
-.tt-ext-suggested-song:hover {background-color:#E3E3E3;}
+.tt-ext-suggested-song:nth-child(even), .tt-ext-room-users div:nth-child(even) {background-color:#F0F0F0;} 
+.tt-ext-suggested-song:hover, .tt-ext-room-users div:hover {background-color:#E3E3E3;}
 .suggestionsOverlay {width:500px;}
 
-// link color:  (orange)
+.tt-ext-room-users {background-color:white;margin:15px auto 0 auto;text-shadow:none;text-align:center;max-height: 550px;overflow-y:scroll;}
+.tt-ext-room-users a {color:#2E9AEB; font-size:16px;padding:5px;}
+
+.tt-ext-welcome-message p {margin-top:15px}

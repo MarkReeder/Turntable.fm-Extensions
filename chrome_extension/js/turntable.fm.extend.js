@@ -8,7 +8,6 @@ TFMEX = {};
     Adam Creeger http://twitter.com/Creeger, http://github.com/acreeger
 */
 
-
 TFMEX.$body = $("body");
 TFMEX.prefs = {
     "showChat": true,
@@ -16,6 +15,7 @@ TFMEX.prefs = {
     "showVote": true,
     "showDJChanges": false,
     "showListenerChanges": false,
+	"enableScrobbling":false,
     "messageTimeout": 10000
 };
 TFMEX.clearNotifications = function() {
@@ -26,6 +26,29 @@ TFMEX.clearNotifications = function() {
 		// console.log(notification);
 		notification.cancel();
 	}
+}
+
+TFMEX.performMigrations = function() {
+	var manifestVersion = $('body').attr('tt-ext-manifest-version') //populated by contentscript
+	var lastRunVersion = localStorage.lastRunVersion
+
+	if (typeof(lastRunVersion) === "undefined" || lastRunVersion == null) {
+		//either first time install or first time since we started doing migrations
+		console.log("Running First Migration")
+
+		var tree = ["div.tt-ext-welcome-message", ["h2","Thanks for installing Turntable Extended!"],["p","Be sure to play around with the new options in the settings menu, as well as the song suggestions link above your DJ Queue."]]
+		turntable.showAlert(tree)
+
+		if (localStorage['lastfm-session-token']) {
+			//if lastfm is configured, enable scrobbling by default
+			console.log("performMigrations: enabling scrobbling")
+			var prefs = JSON.parse(localStorage.TFMEX)
+			prefs.enableScrobbling = true
+			localStorage.TFMEX = JSON.stringify(prefs)
+		}
+	}
+	
+	localStorage.lastRunVersion = manifestVersion
 }
 
 TFMEX.votelog = [];
@@ -108,8 +131,128 @@ TFMEX.suggestedSongView = function(song) {
 				"Search for this artist"
 			]
 		]
+	]	 
+}
+
+TFMEX.settingsItemView = function (itemLabel,clickHandler,elementId) {	
+	return $("#" + elementId).length > 0 ? [] : [
+		"div#" + elementId + ".menuItem",
+		{
+			event: {
+				click: clickHandler
+			}
+		},
+		itemLabel
+	];
+}
+
+TFMEX.preferencesView = function(cancelEvent,saveEvent) {
+	return [
+		"div.modal.tt-ext-preferences",
+		{
+			
+		},
+		[
+			"div.close-x",
+			{
+				event: {
+					click: cancelEvent //turntable.hideOverlay
+				}
+			} 
+		],
+		[
+			"h2",
+			"Extension Settings"
+		],
+		[
+			"div.tt-ext-pref-section",
+			["h3.tt-ext-pref-header","Notifications"],
+			[
+				"dl.tt-ext-pref-body",
+				[
+					"dt","Chat Messages?",["br"],"(Note: Disable the chat ding for this to work)"
+				],
+				[
+					"dd",["input#showChat",{type:"checkbox","data-tfmex-pref":"showChat",value:1}]
+				],
+				[
+					"dt","Song Messages?"
+				],
+				[
+					"dd",["input#showSong",{type:"checkbox","data-tfmex-pref":"showSong",value:1}]
+				],
+				[
+					"dt","Vote Messages?"
+				],
+				[
+					"dd",["input#showVote",{type:"checkbox","data-tfmex-pref":"showVote",value:1}]
+				],			
+				[
+					"dt","DJ Changes?"
+				],
+				[
+					"dd",["input#showDJChanges",{type:"checkbox","data-tfmex-pref":"showDJChanges",value:1}]
+				],			
+				[
+					"dt","Listener Changes?"
+				],
+				[
+					"dd",["input#showListenerChanges",{type:"checkbox","data-tfmex-pref":"showListenerChanges",value:1}]
+				]			
+			]			
+		],["div.clB"],
+		[
+			"div.tt-ext-pref-section",
+				["h3.tt-ext-pref-header","Last.fm"],["dl.tt-ext-pref-body",
+					[
+						"dt","Enable scrobbling?"
+					],
+					[
+						"dd",["input#tt-ext-enable-scrobbling",{type:"checkbox","data-tfmex-pref":"enableScrobbling",value:1}]
+					]
+				]
+		],["div.clB"],
+		[
+			"div.tt-ext-pref-section",
+				["div.save-changes.centered-button",{event:{click:saveEvent}}]
+		]
+	]	
+}
+
+TFMEX.roomUsersView = function() {
+	return [
+		"div.modal.roomUsersOverlay",
+		{
+			style: {
+				width:"450px",
+				"padding-left":0,
+				"padding-right":0,
+				"padding-bottom":0			 
+			}
+		},
+		[
+			"div.close-x",
+			{
+				event: {
+					click: turntable.hideOverlay
+				}
+			} 
+		],
+		[
+			"h2",
+			"In the room, we have..."
+		],
+		[
+			"div##users.tt-ext-room-users"
+		]
 	]
-	 
+}
+
+TFMEX.roomUserView = function(user) {
+	return [
+		"div",
+		user.fbid !== "undefined" ? ["a",{href:'http://facebook.com/profile.php?id=' + user.fbid,target: "_blank"},user.name] : []
+	]
 }
 
 $(document).ready(function() {
@@ -180,15 +323,20 @@ $(document).ready(function() {
 		try {
 	    // $("script[href$='turntable.fm.extend.dev.js']").remove();
 		// $(window).bind('beforeunload', TFMEX.clearNotifications);
-	    $("#tfmExtended").remove();
-	    TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="gear"></div><div class="preferences hidden"></div></div></div>');
-		$("#tfmExtended .gear").click(function(){
-	        if($("#tfmExtended .preferences").hasClass("hidden")) {
-	            showPrefs();
-	        } else {
-	            hidePrefs();
-	        }
-	    });
+	    
+		TFMEX.performMigrations()
+		$("#tfmExtended").remove();
+	    TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="preferences hidden"></div></div></div>');	
+		var customMenuItems = [
+			{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
+			{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"}		
+		]
+		
+		$.each(customMenuItems,function (i,menuItem) {
+			var pos = $('#menuh .menuItem').length - 2
+			$("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId)))
+		});
+		
 		$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
 			//var similarSongs = $('body').data('similarSongs')
 			var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
@@ -203,6 +351,7 @@ $(document).ready(function() {
 				$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are availble for this song.")
 			}
 		});
+		
 		$('#tt-ext-suggestions-link').live('click', function() {
 				//$('#tt-ext-suggestions-box').dialog()
 				var songs = JSON.parse($('body').attr('tt-ext-similar-songs'))
@@ -249,7 +398,6 @@ $(document).ready(function() {
 		        });
 		    }
 		}
-	    setupLive();
 		function untrickify (b) {
 			if (b) {
 				 var c = function(){}
@@ -330,7 +478,7 @@ $(document).ready(function() {
 						// console.log(startTime, song);
 					}		    
 				});
-			} catch(e) {}
+			} catch(e) {console.error("Exception occured in getRoomInfo",e)}
 		},
 		attachListeners = function() {
 			var numMessageListeners = 0,
@@ -382,7 +530,7 @@ $(document).ready(function() {
 						lastSongMetadata = songMetadata;
 						$("body").attr("data-current-song-obj", JSON.stringify(songMetadata));
 						updateNowPlaying(songMetadata);
-						populateSimilarSongs(songMetadata);
+						raiseNewSongEvent(songMetadata);
 				    } else {
 				        return;
 				    }
@@ -422,10 +570,78 @@ $(document).ready(function() {
 			} else {
 			    preferenceSettings = TFMEX.prefs;
 			}
-		    // TFMEX.prefs = preferenceSettings;
-			// console.log(TFMEX.prefs);
+			
+			var lastFmToken = localStorage["lastfm-session-token"]
+			if(!lastFmToken || lastFmToken === 'null') {
+				TFMEX.prefs.enableScrobbling = false //this happens if the user cancels the auth
+			}
+			//save them back - this way any new defaults are saved
+			localStorage.TFMEX = JSON.stringify(TFMEX.prefs)
 		},
-	    showPrefs = function() {
+		showRoomUsers = function() {
+			var containers = {}
+			var markup = util.buildTree(TFMEX.roomUsersView(),containers)
+			
+			var $usersContainer = $(containers.users)
+			
+			$.each(TFMEX.roomInfo.users,function(index, user) {
+				var tree = TFMEX.roomUserView(user)
+				var userMarkup = util.buildTree(tree)
+				$usersContainer.append(userMarkup)
+			})
+			
+			turntable.showOverlay(markup)
+		}
+		showPrefs = function() {
+			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,savePrefs))
+			var $markup = $(markup)
+			
+			updatePrefs();
+						
+			for (var prefName in TFMEX.prefs) {
+	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
+	                $markup.find('input[data-tfmex-pref=' + prefName + ']')
+	                    .prop('checked', TFMEX.prefs[prefName])
+	            }
+	        }
+			
+			if (TFMEX.prefs["enableScrobbling"]) {
+				$markup.find('#tt-ext-enable-scrobbling').prop("checked",true)
+			}
+			
+			turntable.showOverlay(markup)
+		},
+		savePrefs = function() {
+			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
+			
+			var prefsToSave = ["showChat","showSong","showVote","showDJChanges","showListenerChanges"]
+			for (var i in prefsToSave) {
+				var prefName = prefsToSave[i]
+	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
+					//console.debug("Processing pref",prefName)
+					var chkBox = $('input[data-tfmex-pref=' + prefName + ']')
+					var val = chkBox.is(':checked')
+					//console.debug("Setting pref",prefName,"to",val)
+					TFMEX.prefs[prefName] = val;
+				}
+	        }
+		
+			var enableScrobbling = $('#tt-ext-enable-scrobbling').prop('checked')			
+			turntable.hideOverlay()
+						
+			if (!oldEnableScrobblingValue && enableScrobbling) {
+				turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
+					//console.debug("savePrefs: User has selected to enable scrobbling, dispatching last.fm auth event")
+					dispatchEventToContentScript('tt-ext-need-lastfm-auth')					
+				})
+			}
+			//console.debug("savePrefs: setting enable-scrobbling to:",enableScrobbling)
+			TFMEX.prefs["enableScrobbling"] = enableScrobbling //gets into local storage
+			
+			localStorage.setItem("TFMEX", JSON.stringify(TFMEX.prefs));	
+					
+		},
+	    showPrefsOld = function() {
 	        var preferencesContent = "",
 	            preferenceSettings = {},
 	            currentVote = null;
@@ -479,8 +695,6 @@ $(document).ready(function() {
 	        $("#tfmExtended .preferences").html(preferencesContent);
 	        $("#tfmExtended .preferences").removeClass("hidden");
 	
-			updatePrefs();
-
 	        for (var prefName in TFMEX.prefs) {
 	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
 	                $('#tfmExtended input[data-tfmex-pref=' + prefName + ']')
@@ -497,9 +711,6 @@ $(document).ready(function() {
 	            }
 	        }
 			updateUserList();
-	    },
-	    hidePrefs = function() {
-	        $("#tfmExtended .preferences").addClass("hidden");
 	    },
 	    desktopAlert = function(notificationObj) {
 			// console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
@@ -521,8 +732,7 @@ $(document).ready(function() {
 			}
 	    },
 	    updateNowPlaying = function(songObj) {
-	        var lfmSessionToken = $("body").attr("data-lastfm-session-token"),
-				songToMatch = {};
+			var	songToMatch = {};
 			if(songObj.artist !== lastPlayedSong.artist && songObj.song !== lastPlayedSong.song) {
 				lastPlayedSong = songObj;
 				songToMatch.metadata = songObj;
@@ -553,19 +763,6 @@ $(document).ready(function() {
 		    	} catch(e) { 
 		    	    console.error("updateNowPlaying error: " + e.message);
 		    	}
-
-		        if(lfmSessionToken) {
-		            try {
-		                // console.log("songMetadata", songObj);
-		                // console.log("lfm token:", lfmSessionToken);
-		                // console.log("sendRequest- nowPlaying", songObj, lfmSessionToken);
-
-		                // chrome.extension.sendRequest({method: "nowPlaying",trackObj: songObj, session_token: lfmSessionToken});
-		            } catch(e) { console.error(e.message); }
-		        }/* else {
-		            console.log("no lfm session, retry");
-		            window.setTimeout(function() { updateNowPlaying(songObj); }, 250);
-		        }*/
 			}
 	    },
 		updateUserList = function() {
@@ -579,12 +776,13 @@ $(document).ready(function() {
 	        }	
 			$('#tfmExtended .preferences .currentUserList').html(userList);
 		},
-		populateSimilarSongs = function(songMetadata) {
-		    var title = songMetadata.song
-		    var artist = songMetadata.artist
+		dispatchEventToContentScript = function(eventType) {
 			var customEvent = document.createEvent('Event');
-			customEvent.initEvent('tt-ext-new-song-event', true, true);
-			document.getElementById('tt-ext-mpd').dispatchEvent(customEvent)
+			customEvent.initEvent(eventType, true, true);
+			document.getElementById('tt-ext-mpd').dispatchEvent(customEvent)			
+		},
+		raiseNewSongEvent = function(songMetadata) { //sends it to the content script
+			dispatchEventToContentScript('tt-ext-new-song-event')
 		},
 		getSendMessageFunction = function() {
 			var messageFunctionName = $('body').data('tt-ext-messageFunctionName')
@@ -593,6 +791,9 @@ $(document).ready(function() {
 				$('body').data('tt-ext-messageFunctionName',messageFunctionName)
 			}
 		    var messageFunc = eval("turntable." + messageFunctionName)
+			if (!messageFunc) {
+				console.warn("Unable to determine sendMessage function.")
+			}
 			return messageFunc
 		},
 	    extensionEventListener = function(m){
@@ -682,25 +883,7 @@ $(document).ready(function() {
 
 	try {
 		attachListeners();
-		/*
-	    $(window).bind("popstate", function (b) {
-	        cleanUp();
-	        attachListeners();
-	    });
-	    $(window).bind("pushstate", function (b) {
-	        cleanUp();
-	        attachListeners();
-	    });
-		*/
 	} catch(e) { console.error(e.message); }
 	};
 	$.when(getTurntableObjects()).then(whenTurntableObjectsReady);
 });
-function setupLive(){
-    // console.log('setup');
-	$('.setEnableScrobbling').live('click', function(evt) {
-		// console.log(evt);
-		evt.preventDefault();
-		TFMEX.$body.attr("data-enable-scrobbling", true);
-	});
-}

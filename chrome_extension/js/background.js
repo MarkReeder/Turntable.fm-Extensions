@@ -7,38 +7,40 @@ var api_key = "62be1c8445c92c28e5b36f548c069f69",
 	cancelScrobble = false,
 	lastSimilarSongshMetadata = {};
 
+saveVersionFromManifest()
+
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	console.log("In Listener: method is " + request.method)
-	if (request.method == "getToken") {
-		sendResponse(localStorage['lastfm-token']);
-	} else if (request.method == "getSession") {
+	if (request.method == "getSession") {
 		sendResponse(localStorage['lastfm-session-token']);
 	} else if (request.method == "createSession") {
 		create_session();
 	} else if (request.method == "nowPlaying") {
-		nowPlaying(request.songObj,request.session_token);
+		nowPlaying(request.songObj,request.session_token,request.scrobbleEnabled);
 	} else if (request.method == "setCancelScrobble") {
 		setCancelScrobble(request.shouldCancel);
-	} else if (request.method == "getAuthenticated") {
-		get_authenticated();
 	} else if (request.method == "findSimilarSongs") {
 		find_similar_songs(request.songMetadata, sendResponse);
-	} else if(request.method == "getSearchViewMarkup") {
-		console.log("Dom Window:",chrome.extension.getBackgroundPage())
-		var result = $('#tt-ext-suggestView-container',chrome.extension.getBackgroundPage().document)
-		console.log("result", result.html())
-		sendResponse(result.html())
+	} else if (request.method == "clearLastFMData") {
+		localStorage.removeItem("lastfm-token")
+		localStorage.removeItem("lastfm-session-token")
+		sendResponse()
+	} else if (request.method == "getManifestVersion") {
+		sendResponse(localStorage.manifestVersion)
 	} else {
-		console.log("Snubbing... Unknown method: " + request.method)
+		console.warn("Snubbing... Unknown method: " + request.method)
 		sendResponse(); // snub them.
 	}
-
 });
 
+function saveVersionFromManifest() {
+	$.get(chrome.extension.getURL('manifest.json'),function(data) {
+		localStorage.manifestVersion = data.version
+	},'json')
+}
 
-function nowPlaying(songObj,session_token) {
+function nowPlaying(songObj,session_token,scrobbleEnabled) {
 	current_song = songObj;
-	// console.log("In nowPlaying");
+	//console.debug("In nowPlaying with session_token",session_token);
 	// console.log("lastfm-session-token", session_token);
 	timestamp = Math.round((new Date()).getTime() / 1000);
 
@@ -50,14 +52,15 @@ function nowPlaying(songObj,session_token) {
 	var track = songObj.song;
 	var length = songObj.length;
 	var album = songObj.album;
-	var scrobbleIn = length>480?240:length/2;
+	var scrobbleIn = Math.min(240,length/2);
 
 	window.clearTimeout(scrobble_timer);
+	//console.debug("background::nowPlaying: Setting up a scrobble to happen in",scrobbleIn,"seconds.")
 	scrobble_timer = window.setTimeout(
 		function(){
-			scrobble(songObj, session_token);
+			//console.debug("Calling scrobble from wthin nowPlaying. scrobbleEnabled:",scrobbleEnabled)
+			if (scrobbleEnabled) scrobble(songObj, session_token);
 		}, scrobbleIn*1000);
-
 
 	//console.log("Creating sig from: "+"artist"+artist+"api_key"+api_key+"method"+api_call+"sk"+session_token+"timestamp"+timestamp+"track"+track+api_secret);
 	var methodSignature = "album" + album + "api_key" + api_key + "artist" + artist + "length" + length + "method" + api_call + "sk" + session_token + "timestamp" + timestamp + "track" + track+api_secret;
@@ -98,10 +101,10 @@ function setCancelScrobble(shouldCancel) {
 
 
 function scrobble(songObj,session_token) {
-	// console.log("scrobble", songObj, session_token);
+	console.log("In scrobble with track",songObj.artist,songObj.song,"and session_token",session_token);
 	// console.log("cancel?", cancelScrobble);
 	if(cancelScrobble) {
-		console.log("Canceling Scrobble- track was voted lame.");
+		//console.debug("Canceling Scrobble- track was voted lame.");
 	} else {
 		timestamp = Math.round((new Date()).getTime() / 1000);
 
@@ -134,7 +137,7 @@ function scrobble(songObj,session_token) {
 		 xhr.onreadystatechange = function(data) {
 			if (xhr.readyState == 4) {
 				if (xhr.status == 200) {
-					console.log("Received data: "+xhr.responseText);
+					console.log("scrobble: Received data: "+xhr.responseText);
 				}
 			}
  		};
@@ -145,10 +148,8 @@ function scrobble(songObj,session_token) {
 	
 }
 
-
-
-
 function create_session() {
+	//console.debug("In create_session")
 	timestamp = new Date().getTime();
 	var method = 'GET';
 	var api_call ='auth.getSession';
@@ -173,9 +174,8 @@ function create_session() {
 		if (xhr.readyState == 4) {
 			if (xhr.status == 200) {
 				session_response = JSON.parse(xhr.responseText);
-				//console.log("Received data: "+xhr.responseText);
-				localStorage['lastfm-session-token'] = session_response.session.key;
-				
+				//console.debug("create_session: Received data: "+ xhr.responseText);
+				localStorage['lastfm-session-token'] = session_response.session.key;				
 			}
 		}
 	};
@@ -197,7 +197,7 @@ function find_similar_songs(songMetadata,sendResponse) {
 		url = 'http://ws.audioscrobbler.com/2.0/';
 	if(songMetadata.artist !== lastSimilarSongshMetadata.artist || songMetadata.song !== lastSimilarSongshMetadata.song) { // Prevent multiple calls for the same data from being made
 		lastSimilarSongshMetadata = songMetadata;
-		$.get(url,params,function(data) {
+		var jqXHR = $.get(url,params,function(data) {
 			var songsByOtherArtists = [];
 			var type = $.type(data.similartracks.track);
 			if (type !== "string") { //sometimes last.fm returns weird data.
@@ -210,6 +210,10 @@ function find_similar_songs(songMetadata,sendResponse) {
 		
 			console.log("find_similar_songs: Sending",songsByOtherArtists.length,"songs to the content script.");
 			sendResponse(JSON.stringify(songsByOtherArtists));
+		});
+		
+		jqXHR.error(function(xhr, textStatus, errorThrown) {
+			console.warn("Background::find_similar_songs: An error occured while getting simlar songs:",errorThrown,"The text status was:",textStatus)
 		});
 	}
 }
