@@ -33,8 +33,12 @@ TFMEX.performMigrations = function() {
 	var lastRunVersion = localStorage.lastRunVersion
 
 	if (typeof(lastRunVersion) === "undefined" || lastRunVersion == null) {
-		//first time since we started doing migrations
+		//either first time install or first time since we started doing migrations
 		console.log("Running First Migration")
+
+		var tree = ["div.tt-ext-welcome-message", ["h2","Thanks for installing Turntable Extended!"],["p","Be sure to play around with the new options in the settings menu, as well as the song suggestions link above your DJ Queue."]]
+		turntable.showAlert(tree)
+
 		if (localStorage['lastfm-session-token']) {
 			//if lastfm is configured, enable scrobbling by default
 			console.log("performMigrations: enabling scrobbling")

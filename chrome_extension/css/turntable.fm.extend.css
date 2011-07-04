@@ -54,3 +54,5 @@
 
 .tt-ext-room-users {background-color:white;margin:15px auto 0 auto;text-shadow:none;text-align:center;max-height: 550px;overflow-y:scroll;}
 .tt-ext-room-users a {color:#2E9AEB; font-size:16px;padding:5px;}
+
+.tt-ext-welcome-message p {margin-top:15px}
