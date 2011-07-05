@@ -10,7 +10,7 @@ TFMEX = {};
 
 TFMEX.$body = $("body");
 TFMEX.prefs = {
-    "showChat": true,
+    "showChat": false,
     "showSong": true,
     "showVote": true,
     "showDJChanges": false,
