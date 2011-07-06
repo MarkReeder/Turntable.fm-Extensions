@@ -135,7 +135,7 @@ TFMEX.suggestedSongView = function(song) {
 }
 
 TFMEX.settingsItemView = function (itemLabel,clickHandler,elementId) {	
-	return $("#" + elementId).length > 0 ? [] : [
+	return $("#" + elementId).length > 0 ? null : [
 		"div#" + elementId + ".menuItem",
 		{
 			event: {
@@ -358,7 +358,11 @@ $(document).ready(function() {
 		
 		$.each(customMenuItems,function (i,menuItem) {
 			var pos = $('#menuh .menuItem').length - 2
-			$("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId)))
+			var tree = TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId)
+			if (tree) {
+                //console.log("Creating menu item",menuItem.name,"with tree",tree)
+                $("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(tree))
+            }
 		});
 		
 		$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
@@ -502,7 +506,7 @@ $(document).ready(function() {
 						// console.log(startTime, song);
 					}		    
 				});
-			} catch(e) {console.error("Exception occured in getRoomInfo",e)}
+			} catch(e) {console.error("Exception occured in getRoomInfo",e.stack)}
 		},
 		attachListeners = function() {
 			var numMessageListeners = 0,
@@ -547,7 +551,7 @@ $(document).ready(function() {
 					}
 					lastRoomUrl = window.location.href;
 				}
-				if(TFMEX.roomInfo.currentSong) {
+				if(TFMEX.roomInfo && TFMEX.roomInfo.currentSong) {
 					songMetadata = TFMEX.roomInfo.currentSong.metadata;
 				    if(songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist) {
 						// console.log("Found a change!");
@@ -560,7 +564,7 @@ $(document).ready(function() {
 				    }
 				}
 			} catch(e) {
-				console.warn("Got an error whilst checking for changes: " + e)
+				console.warn("Got an error whilst checking for changes",e.stack)
 			}
 		},
 		cleanUp = function() {
@@ -785,7 +789,7 @@ $(document).ready(function() {
 		    		}
 
 		    	} catch(e) { 
-		    	    console.error("updateNowPlaying error: " + e.message);
+		    	    console.error("updateNowPlaying error: " + e.stack);
 		    	}
 			}
 	    },
@@ -893,7 +897,7 @@ $(document).ready(function() {
 	                                timeout: TFMEX.prefs.messageTimeout
 	                            });
 	                        }
-	                    } catch(e) { console.error(e.message); }
+	                    } catch(e) { console.error("Exception occurred during showVote",e.stack); }
 	                case "update_user":
 	                case "new_moderator":
 	                default:
@@ -903,11 +907,11 @@ $(document).ready(function() {
 	        }
 	    }
 		extensionEventListener.prototype.TFMEXListener = true;
-	} catch(e) { console.error(e); }
+	} catch(e) { console.error("Exception during initialization:",e.stack); }
 
 	try {
 		attachListeners();
-	} catch(e) { console.error(e.message); }
+	} catch(e) { console.error("Exception during attachListeners",e.stack); }
 	};
 	$.when(getTurntableObjects()).then(whenTurntableObjectsReady);
 });
