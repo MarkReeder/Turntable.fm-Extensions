@@ -372,7 +372,7 @@ $(document).ready(function() {
 			} else {
 				// console.log("No related songs available for",songMetadata.artist,". Disabling suggestions link.")
 				$('#tt-ext-suggestions-link').addClass("tt-ext-link-disabled")
-				$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are availble for this song.")
+				$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are available for this song.")
 			}
 		});
 		
