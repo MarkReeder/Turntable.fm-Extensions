@@ -243,7 +243,7 @@ TFMEX.roomUsersView = function() {
 			"In the room, we have..."
 		],
 		[
-			"div##users.tt-ext-room-users"
+			"div.tt-ext-room-users",["div##users"]
 		]
 	]
 }
@@ -254,12 +254,13 @@ TFMEX.roomUserView = function(user) {
 		userVoteText = "",
 		returnObj = null;
 	returnObj = [
-		"div"
+		"div.tt.ext-room-user"
 	];
 	returnObj.push(["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]);
 	if(user.fbid !== "undefined") {
-		returnObj.push(["a",{href:'http://facebook.com/profile.php?id=' + user.fbid,target: "_blank"},"on Facebook"]);
+		returnObj.push(["a",{href:'http://facebook.com/profile.php?id=' + user.fbid,target: "_blank",class:'tt-ext-aux-link'},"on Facebook"]);
 	}
+    returnObj.push(["a",{href:'http://ttdashboard.com/user/f/' + user.fbid + '/',target: "_blank",class:'tt-ext-aux-link'},"on TTDashboard"])
 	/* Insert upvote messages next to user names
 	for (var i in TFMEX.roomInfo.upvoters) {
 		if(TFMEX.roomInfo.upvoters[i] === user.userid) {

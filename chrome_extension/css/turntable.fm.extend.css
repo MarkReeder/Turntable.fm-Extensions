@@ -49,10 +49,13 @@
 .tt-ext-suggested-song .tt-ext-search-link {color:#2E9AEB; font-size:12px;cursor:pointer;text-decoration:underline;float:right;padding:5px;}
 .tt-ext-suggested-song div {clear:right;}
 .tt-ext-suggested-song:nth-child(even), .tt-ext-room-users div:nth-child(even) {background-color:#F0F0F0;} 
-.tt-ext-suggested-song:hover, .tt-ext-room-users div:hover {background-color:#E3E3E3;}
+.tt-ext-suggested-song:hover, .tt.ext-room-user:hover {background-color:#E3E3E3;}
 .suggestionsOverlay {width:500px;}
 
-.tt-ext-room-users {background-color:white;color:#333;text-align:left;margin:15px auto 0 auto;text-shadow:none;max-height: 550px;overflow-y:scroll;}
-.tt-ext-room-users a {color:#2E9AEB; font-size:16px;padding:5px;margin-left:10px;}
+.tt-ext-room-users {background-color:white;color:#333;text-align:left;margin:15px auto 0 auto;text-shadow:none;max-height: 550px;overflow-y:auto;}
+.tt-ext-room-users > div {display:table;width:100%;}
+.tt.ext-room-user {padding:5px 0px;display:table-row;}
+.tt-ext-room-users a {color:#2E9AEB; padding:5px;display:table-cell;font-size:13px;text-align:right;}
+.tt-ext-room-users a:nth-child(1) {font-size:16px;text-align:left;}
 
 .tt-ext-welcome-message p {margin-top:15px}
