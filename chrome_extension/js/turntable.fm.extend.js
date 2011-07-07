@@ -42,9 +42,11 @@ TFMEX.performMigrations = function() {
 		if (localStorage['lastfm-session-token']) {
 			//if lastfm is configured, enable scrobbling by default
 			console.log("performMigrations: enabling scrobbling")
-			var prefs = JSON.parse(localStorage.TFMEX)
-			prefs.enableScrobbling = true
-			localStorage.TFMEX = JSON.stringify(prefs)
+			try {
+                var prefs = JSON.parse(localStorage.TFMEX)
+                prefs.enableScrobbling = true
+                localStorage.TFMEX = JSON.stringify(prefs)
+            } catch (ex) {console.warn("Error occurred whilst enabling scrobbling.",ex.stack)}
 		}
 	}
 	
@@ -355,7 +357,7 @@ $(document).ready(function() {
 	    // $("script[href$='turntable.fm.extend.dev.js']").remove();
 		// $(window).bind('beforeunload', TFMEX.clearNotifications);
 	    
-		TFMEX.performMigrations()
+        TFMEX.performMigrations()
 		$("#tfmExtended").remove();
 	    TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="preferences hidden"></div></div></div>');	
 		var customMenuItems = [
