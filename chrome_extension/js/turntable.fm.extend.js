@@ -280,6 +280,12 @@ TFMEX.showUserProfile = function(userId) {
 	turntable.hideOverlay();
 }
 
+TFMEX.muteUser = function(userName) {
+	var $form = $("#right-panel .chat-container .input-box");
+	$form.find('input').val("/ignore " + userName);
+	$form.submit();
+}
+
 $(document).ready(function() {
 	var tKeysLength = Object.keys(turntable).length,
 		lastPlayedSong = {};
@@ -514,6 +520,14 @@ $(document).ready(function() {
 				numSoundstartListeners = 0;
 			// console.log("in attachListeners");
 			cleanUp();
+			$("#right-panel .messages").delegate(".message", "mouseenter", function(){
+				var $this = $(this).find('.speaker'),
+					userName = $this.html();
+				$this.after('<a class="mute-user" href="javascript:TFMEX.muteUser(\'' + userName +'\')" title="mute">&#216;</a>');
+			});
+			$("#right-panel .messages").delegate(".message", "mouseleave", function(){
+				$(this).find('.mute-user').remove();
+			});
 	        var intervalID = window.setInterval(function() {
 				// console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
 	            if(window.turntable.eventListeners.message.length) {
