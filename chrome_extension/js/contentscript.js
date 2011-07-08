@@ -17,9 +17,6 @@ messagePassingContainer[0].addEventListener('tt-ext-new-song-event', function() 
 messagePassingContainer[0].addEventListener('tt-ext-need-lastfm-auth', function() {
     get_authenticated();
 });
-messagePassingContainer[0].addEventListener('tt-ext-get-song-tags', function() {
-    populateSongTags(JSON.parse($("body").attr("data-temp-song-obj")));
-});
 
 setInterval("check_for_authentication()",1000);
 
@@ -41,15 +38,7 @@ function sendDataToLastFM(songMetadata) {
 	//console.debug("contentScript::sendDataToLastFM: Setting data-cancel-scrobble to false and calling nowPlaying()")
 	$("body").attr("data-cancel-scrobble", false);
 	nowPlaying(songMetadata,localStorage["lastfm-session-token"]);
-}
-
-
-function populateSongTags(songMetadata) {
-    chrome.extension.sendRequest({method: "findTopTags", "songMetadata" : songMetadata}, function(response) {
-		console.log(songMetadata, response);
-    });
-}
-
+}	
 
 
 function populateSimilarSongs(songMetadata) {
