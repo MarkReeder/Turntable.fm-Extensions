@@ -497,14 +497,6 @@ $(document).ready(function() {
 					$songQueue.removeClass("matchesRecentlyPlayedArtist");
 					$songQueue.removeClass("matchesRecentlyPlayedSongTitle");
 					TFMEX.songlog = info.room.metadata.songlog;
-					for(i in turntable.playlist.files) {
-						// if(i < 5) {
-						song = turntable.playlist.files[i];
-						// console.log("about to get tags for:", song);
-						$("body").attr("data-temp-song-obj", JSON.stringify(song));
-						dispatchEventToContentScript('tt-ext-get-song-tags');
-						// }
-					}
 					for(i in info.room.metadata.songlog) {
 						song = info.room.metadata.songlog[i];
 						highlightMatchingTracks(song, $songQueue);
@@ -669,7 +661,7 @@ $(document).ready(function() {
 			if (!oldEnableScrobblingValue && enableScrobbling) {
 				turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
 					//console.debug("savePrefs: User has selected to enable scrobbling, dispatching last.fm auth event")
-					dispatchEventToContentScript('tt-ext-need-lastfm-auth');
+					dispatchEventToContentScript('tt-ext-need-lastfm-auth')					
 				})
 			}
 			//console.debug("savePrefs: setting enable-scrobbling to:",enableScrobbling)
