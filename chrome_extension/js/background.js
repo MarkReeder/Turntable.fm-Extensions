@@ -262,7 +262,7 @@ function find_top_tags(song,sendResponse) {
 		});
 
 		jqXHR.error(function(xhr, textStatus, errorThrown) {
-			console.warn("Background::find_top_tags: An error occured while getting simlar songs:",errorThrown,"The text status was:",textStatus)
+			console.warn("Background::find_top_tags: An error occured while getting top tags:",errorThrown,"The text status was:",textStatus)
 			songTags[song.fileId] = [];
 			localStorage["songTags"] = JSON.stringify(songTags);
 		});

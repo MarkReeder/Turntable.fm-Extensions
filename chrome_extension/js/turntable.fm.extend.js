@@ -498,12 +498,9 @@ $(document).ready(function() {
 					$songQueue.removeClass("matchesRecentlyPlayedSongTitle");
 					TFMEX.songlog = info.room.metadata.songlog;
 					for(i in turntable.playlist.files) {
-						// if(i < 5) {
 						song = turntable.playlist.files[i];
-						// console.log("about to get tags for:", song);
 						$("body").attr("data-temp-song-obj", JSON.stringify(song));
 						dispatchEventToContentScript('tt-ext-get-song-tags');
-						// }
 					}
 					for(i in info.room.metadata.songlog) {
 						song = info.room.metadata.songlog[i];
