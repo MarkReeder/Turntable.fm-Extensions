@@ -5,7 +5,15 @@ var api_key = "62be1c8445c92c28e5b36f548c069f69",
 	current_song,
 	scrobble_timer,
 	cancelScrobble = false,
-	lastSimilarSongsMetadata = {};
+	lastSimilarSongsMetadata = {},
+	tagCountThreshold = 50,
+	songTags = localStorage["songTags"];
+	
+if(typeof(songTags) === "undefined") {
+	songTags = {};
+} else {
+	songTags = JSON.parse(songTags);
+}
 
 saveVersionFromManifest()
 
@@ -214,6 +222,47 @@ function find_similar_songs(songMetadata,sendResponse) {
 		
 		jqXHR.error(function(xhr, textStatus, errorThrown) {
 			console.warn("Background::find_similar_songs: An error occured while getting simlar songs:",errorThrown,"The text status was:",textStatus)
+		});
+	}
+}
+
+function find_top_tags(song,sendResponse) {
+	var songMetadata = song.metadata,
+		params = {
+		    "method" : "track.getTopTags",
+		    "artist" : songMetadata.artist,
+		    "track" : songMetadata.song,
+		    "api_key" : api_key,
+			"autocorrect" : "1",
+		    "format" : "json"
+		},
+		url = 'http://ws.audioscrobbler.com/2.0/';
+	if(typeof(songTags[song.fileId]) !== "undefined") {
+		sendResponse(JSON.stringify(songTags[song.fileId]));
+	} else {
+		// console.log("Not found locally, requesting tags from last.fm");
+		var jqXHR = $.get(url,params,function(data) {
+			var topSongTags = [],
+				type = typeof(data.toptags.tag) !== "undefined"?$.type(data.toptags.tag):"undefined";
+			if (type !== "string" && type !== "undefined") { //sometimes last.fm returns weird data.
+				$.each(data.toptags.tag, function(index, tagInfo) {
+					if(tagInfo.count >= tagCountThreshold) {
+						topSongTags.push(tagInfo.name);
+					}
+				});
+			}
+		
+			// console.log("find_top_tags: Sending",topSongTags,"to the content script.");
+			sendResponse(JSON.stringify(topSongTags));
+		
+			songTags[song.fileId] = topSongTags;
+			localStorage["songTags"] = JSON.stringify(songTags);
+		});
+
+		jqXHR.error(function(xhr, textStatus, errorThrown) {
+			console.warn("Background::find_top_tags: An error occured while getting top tags:",errorThrown,"The text status was:",textStatus)
+			songTags[song.fileId] = [];
+			localStorage["songTags"] = JSON.stringify(songTags);
 		});
 	}
 }
