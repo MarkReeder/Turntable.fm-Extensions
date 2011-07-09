@@ -856,6 +856,16 @@ $(document).ready(function() {
 				// console.log("m.command: ", m.command, TFMEX.prefs);
 	            switch(m.command) {
 	                case "newsong":
+                        var roomInfo = m.room.metadata
+                        var newSong = (roomInfo ? roomInfo.current_song : null);
+                        if (newSong) {
+                            if (TFMEX.songlog) {
+                                var currentSong = TFMEX.songlog[TFMEX.songlog.length - 1]
+                                if (currentSong.starttime != newSong.starttime) {
+                                    TFMEX.songlog.push(newSong)
+                                }
+                            }
+                        }
 	                    break;
 	                case "speak":
 	                    if(TFMEX.prefs.showChat) {
@@ -896,7 +906,16 @@ $(document).ready(function() {
 	                    }
 	                    break;
 	                case "update_votes":
-	                    TFMEX.votelog = m.room.metadata.votelog;
+	                    //update vote in song log
+                        var roomInfo = m.room.metadata
+                        var score = (roomInfo.upvotes - roomInfo.downvotes + roomInfo.listeners) / (2 * roomInfo.listeners);
+                        if (score) {
+                            if (TFMEX.songlog) {
+                                var latestSong = TFMEX.songlog[TFMEX.songlog.length - 1]
+                                if (latestSong) latestSong.score = score
+                            }
+                        }
+                        TFMEX.votelog = m.room.metadata.votelog;
 	                    var currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
 						if(currentVote[0] === TFMEX.roommanager.myuserid) {
 							if(currentVote[1] == "down") {
