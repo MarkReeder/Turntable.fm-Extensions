@@ -5,7 +5,7 @@ var api_key = "62be1c8445c92c28e5b36f548c069f69",
 	current_song,
 	scrobble_timer,
 	cancelScrobble = false,
-	lastSimilarSongshMetadata = {};
+	lastSimilarSongsMetadata = {};
 
 saveVersionFromManifest()
 
@@ -195,8 +195,8 @@ function find_similar_songs(songMetadata,sendResponse) {
 		    "format" : "json"
 		},
 		url = 'http://ws.audioscrobbler.com/2.0/';
-	if(songMetadata.artist !== lastSimilarSongshMetadata.artist || songMetadata.song !== lastSimilarSongshMetadata.song) { // Prevent multiple calls for the same data from being made
-		lastSimilarSongshMetadata = songMetadata;
+	if(songMetadata.artist !== lastSimilarSongsMetadata.artist || songMetadata.song !== lastSimilarSongsMetadata.song) { // Prevent multiple calls for the same data from being made
+		lastSimilarSongsMetadata = songMetadata;
 		var jqXHR = $.get(url,params,function(data) {
 			var songsByOtherArtists = [];
 			var type = $.type(data.similartracks.track);
