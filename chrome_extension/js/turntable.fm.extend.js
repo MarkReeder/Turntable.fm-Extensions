@@ -282,6 +282,14 @@ TFMEX.showUserProfile = function(userId) {
 	turntable.hideOverlay();
 }
 
+TFMEX.findSongInQueue = function(fileId) {
+	for(i in turntable.playlist.files) {
+		if(turntable.playlist.files[i].fileId === fileId) {
+			return $('#playlist .queue .song').eq(i);
+		}
+	}
+}
+
 $(document).ready(function() {
 	var tKeysLength = Object.keys(turntable).length,
 		lastPlayedSong = {};
@@ -353,7 +361,7 @@ $(document).ready(function() {
 	    
 		TFMEX.performMigrations()
 		$("#tfmExtended").remove();
-	    TFMEX.$body.append('<div id="tfmExtended"><div class="tag-list"></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');	
+	    TFMEX.$body.append('<div id="tfmExtended"><ul class="tag-list"></ul><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');	
 		var customMenuItems = [
 			{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
 			{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"}		
@@ -366,6 +374,36 @@ $(document).ready(function() {
                 //console.log("Creating menu item",menuItem.name,"with tree",tree)
                 $("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(tree))
             }
+		});
+		
+		$("#tfmExtended .tag-list").delegate(".songs-collapsed", "click", function() {
+			var i,
+				$this = $(this),
+				$songList = null,
+				tags = TFMEX.tagSongs[$this.data("tag")],
+				metadata = null;
+			$this.append('<ul></ul>');
+			$songList = $this.find("ul");
+			for(i in tags) {
+				if(tags.hasOwnProperty(i)) {
+					metadata = turntable.playlist.songsByFid[tags[i]].metadata;
+					$songList.append('<li data-song-id="' + turntable.playlist.songsByFid[tags[i]].fileId + '" class="move-top"><span class="title">' + metadata.song + '</span><span class="details">' + metadata.artist + '</span></li>');
+				}
+			}
+			$this.removeClass("songs-collapsed");
+			$this.addClass("songs-expanded");
+		});
+
+		$("#tfmExtended .tag-list").delegate(".move-top", "click", function() {
+			TFMEX.findSongInQueue($(this).data("song-id")).find('.goTop').click();
+			return false;
+		});
+
+		$("#tfmExtended .tag-list").delegate(".songs-expanded", "click", function() {
+			var $this = $(this);
+			$this.find("ul").remove();
+			$this.removeClass("songs-expanded");
+			$this.addClass("songs-collapsed");
 		});
 		
 		$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
@@ -611,7 +649,7 @@ $(document).ready(function() {
 		},
 		refreshTagSongs = function() {
 			var songId, j, tag;
-			
+			TFMEX.tagSongs = {};
 			for(songId in TFMEX.songTags) {
 				if(TFMEX.songTags.hasOwnProperty(songId)) {
 					tags = TFMEX.songTags[songId];
@@ -630,7 +668,7 @@ $(document).ready(function() {
 			}
 			for(tag in TFMEX.tagSongs) {
 				if(TFMEX.tagSongs.hasOwnProperty(tag)) {
-					$("#tfmExtended .tag-list").append('<li>' + tag + ' (' + TFMEX.tagSongs[tag].length + ')</li>');
+					$("#tfmExtended .tag-list").append('<li data-tag="' + tag +'" class="songs-collapsed">' + tag + ' (' + TFMEX.tagSongs[tag].length + ')</li>');
 				}
 			}
 		},
