@@ -353,7 +353,7 @@ $(document).ready(function() {
 	    
 		TFMEX.performMigrations()
 		$("#tfmExtended").remove();
-	    TFMEX.$body.append('<div id="tfmExtended"><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');	
+	    TFMEX.$body.append('<div id="tfmExtended"><div class="tag-list"></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');	
 		var customMenuItems = [
 			{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
 			{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"}		
@@ -610,7 +610,7 @@ $(document).ready(function() {
 			updatePrefs();
 		},
 		refreshTagSongs = function() {
-			var songId, j;
+			var songId, j, tag;
 			
 			for(songId in TFMEX.songTags) {
 				if(TFMEX.songTags.hasOwnProperty(songId)) {
@@ -628,7 +628,11 @@ $(document).ready(function() {
 					}
 				}
 			}
-			
+			for(tag in TFMEX.tagSongs) {
+				if(TFMEX.tagSongs.hasOwnProperty(tag)) {
+					$("#tfmExtended .tag-list").append('<li>' + tag + ' (' + TFMEX.tagSongs[tag].length + ')</li>');
+				}
+			}
 		},
 		updatePrefs = function() {
 			// console.log("TFMEX.prefs", TFMEX.prefs);
