@@ -38,8 +38,14 @@ function sendDataToLastFM(songMetadata) {
 	//console.debug("contentScript::sendDataToLastFM: Setting data-cancel-scrobble to false and calling nowPlaying()")
 	$("body").attr("data-cancel-scrobble", false);
 	nowPlaying(songMetadata,localStorage["lastfm-session-token"]);
-}	
+}
 
+function populateSongTags(songMetadata) {
+    chrome.extension.sendRequest({method: "findTopTags", "songMetadata" : songMetadata}, function(response) {
+		// console.log("populateSongTags", songMetadata, response);
+		$('#tfmExtended .tags').append('<div data-song="' + songMetadata.fileId + '" data-tags=\'' + response + '\'></div>');
+    });
+}
 
 function populateSimilarSongs(songMetadata) {
     createSuggestedSongsMarkup();
@@ -109,7 +115,6 @@ function setCancelScrobble(shouldCancel) {
 
 function saveManifestVersionToDOM() {
 	chrome.extension.sendRequest({method: "getManifestVersion"}, function(response) {
-		//send songs to injected script
 		$('body').attr('tt-ext-manifest-version',response)
     });	
 }

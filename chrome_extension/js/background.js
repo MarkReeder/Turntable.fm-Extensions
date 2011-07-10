@@ -243,7 +243,7 @@ function find_top_tags(song,sendResponse) {
 		// console.log("Not found locally, requesting tags from last.fm");
 		var jqXHR = $.get(url,params,function(data) {
 			var topSongTags = [],
-				type = typeof(data.toptags.tag) !== "undefined"?$.type(data.toptags.tag):"undefined";
+				type = (typeof(data.toptags) !== "undefined" && typeof(data.toptags.tag) !== "undefined")?$.type(data.toptags.tag):"undefined";
 			if (type !== "string" && type !== "undefined") { //sometimes last.fm returns weird data.
 				$.each(data.toptags.tag, function(index, tagInfo) {
 					if(tagInfo.count >= tagCountThreshold) {
