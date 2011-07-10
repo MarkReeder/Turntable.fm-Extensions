@@ -46,7 +46,8 @@ function sendDataToLastFM(songMetadata) {
 
 function populateSongTags(songMetadata) {
     chrome.extension.sendRequest({method: "findTopTags", "songMetadata" : songMetadata}, function(response) {
-		console.log(songMetadata, response);
+		// console.log("populateSongTags", songMetadata, response);
+		$('#tfmExtended .tags').append('<div data-song="' + songMetadata.fileId + '" data-tags=\'' + response + '\'></div>');
     });
 }
 
