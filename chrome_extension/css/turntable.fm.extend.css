@@ -60,4 +60,7 @@
 
 .tt-ext-welcome-message p {margin-top:15px}
 
-.tag-list { background-color: #fff; height: 701px; width: 250px; overflow-y: scroll; }
+.tag-list { background-color: #fff; height: 701px; width: 250px; overflow-y: scroll; font-size: .8em; cursor: pointer; }
+.tag-list .songs-expanded span { display: block; }
+.tag-list .songs-expanded ul { margin-left: 10px; }
+.tag-list .songs-expanded .title { font-weight: bold; }
