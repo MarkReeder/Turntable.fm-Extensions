@@ -276,6 +276,58 @@ TFMEX.roomUserView = function(user) {
 	return returnObj;
 }
 
+TFMEX.tagView = function(tag, fileId) {
+	return [
+		"div.tt-ext-song-tag",
+		{
+			'data-song-id':fileId,
+			'data-tag':tag
+		},
+		[
+			"span.tag",
+			{title:tag},		
+			tag
+		],
+		[
+			"a.remove-tag",
+			{title:"Remove Tag"},
+			"X"
+		]
+	]
+}
+
+TFMEX.tagAdd = function(fileId) {
+	return [
+		"div.tt-ext-song-tag.tt-ext-new-song-tag",
+		{
+		},
+		[
+			"form.input-box.new-song-tag",
+			{},
+			[
+				"input#new-song-tag-value",
+				{
+					type:"text",
+					'data-song-id':fileId
+				},
+				""
+			]
+		]
+	]
+}
+
+TFMEX.removeTagFromSong = function(tag, fileId) {
+	TFMEX.songTags[fileId].splice(TFMEX.songTags[fileId].indexOf(tag), 1);
+	localStorage.TFMEXsongTags = JSON.stringify(TFMEX.songTags);
+	TFMEX.refreshTagSongs();
+}
+
+TFMEX.addTagToSong = function(tag, fileId) {
+	TFMEX.songTags[fileId].push(tag);
+	localStorage.TFMEXsongTags = JSON.stringify(TFMEX.songTags);
+	TFMEX.refreshTagSongs();
+}
+
 TFMEX.showUserProfile = function(userId) {
 	TFMEX.roommanager.callback('profile',userId);
 	turntable.hideOverlay();
@@ -285,6 +337,42 @@ TFMEX.muteUser = function(userName) {
 	var $form = $("#right-panel .chat-container .input-box");
 	$form.find('input').val("/ignore " + userName);
 	$form.submit();
+}
+
+
+TFMEX.tagsOverlayView = function(metadata) {
+	var songName = metadata.song,
+		artistName = metadata.artist;
+	return [
+		"div.modal.tagsOverlay",
+		{
+			style: {
+				width:"590px",
+				"padding-left":0,
+				"padding-right":0,
+				"padding-bottom":0			 
+			}
+		},
+		[
+			"div.close-x",
+			{
+				event: {
+					click: turntable.hideOverlay
+				}
+			} 
+		],
+		[
+			"h2",
+			"Tags For:"
+		],
+		[
+			"p",
+			songName + " by " +artistName
+		],
+		[
+			"div##tags.tt-ext-song-tags"
+		]
+	]
 }
 
 TFMEX.findSongInQueue = function(fileId) {
@@ -297,7 +385,8 @@ TFMEX.findSongInQueue = function(fileId) {
 
 $(document).ready(function() {
 	var tKeysLength = Object.keys(turntable).length,
-		lastPlayedSong = {};
+		lastPlayedSong = {},
+		tagIconsAdded = false;
 	TFMEX.roomInfo = null;
 	TFMEX.userInfo = null;
 	TFMEX.roommanager = null;
@@ -392,7 +481,7 @@ $(document).ready(function() {
 			for(i in tags) {
 				if(tags.hasOwnProperty(i)) {
 					metadata = turntable.playlist.songsByFid[tags[i]].metadata;
-					$songList.append('<li data-song-id="' + turntable.playlist.songsByFid[tags[i]].fileId + '" class="move-top"><span class="title">' + metadata.song + '</span><span class="details">' + metadata.artist + '</span></li>');
+					$songList.append('<li><a data-song-id="' + turntable.playlist.songsByFid[tags[i]].fileId + '" class="move-top"></a><span class="title">' + metadata.song + '</span><span class="details">' + metadata.artist + '</span></li>');
 				}
 			}
 			$this.removeClass("songs-collapsed");
@@ -409,6 +498,38 @@ $(document).ready(function() {
 			$this.find("ul").remove();
 			$this.removeClass("songs-expanded");
 			$this.addClass("songs-collapsed");
+		});
+		
+		$('#overlay').delegate('.remove-tag', 'click', function() {
+			var $this = $(this),
+				$tagWrapper = $this.closest('.tt-ext-song-tag');
+				songId = $tagWrapper.data('song-id'),
+				tag = $tagWrapper.data('tag');
+			TFMEX.removeTagFromSong(tag, songId);
+			$tagWrapper.remove();
+			return false;
+		});
+		
+		
+		
+		$('#playlist').delegate('.tag', 'click', function() {
+			var containers = {},
+				fileId = $(this).data('file-id'),
+				tags = TFMEX.songTags[fileId],
+				metadata = turntable.playlist.songsByFid[fileId].metadata,
+				markup = util.buildTree(TFMEX.tagsOverlayView(metadata),containers),
+				tagsContainer = containers.tags,
+				tagName;
+
+			$.each(tags,function(index, tag) {
+				var tree = TFMEX.tagView(tag, fileId);
+				var tagMarkup = util.buildTree(tree);
+				$(tagsContainer).append(tagMarkup);
+			});
+			
+			$(tagsContainer).append(util.buildTree(TFMEX.tagAdd(fileId)));
+
+			turntable.showOverlay(markup);
 		});
 		
 		$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
@@ -456,7 +577,17 @@ $(document).ready(function() {
 					turntable.hideOverlay()
 				}
 								
-		});		
+		});
+		$('#overlay').delegate('.new-song-tag', 'submit', function(evt) {
+			var $newSongTag = $('#new-song-tag-value'),
+				$newSongRow = $newSongTag.closest('div'),
+				tag = $newSongTag.val(),
+				fileId = $newSongTag.data('song-id');
+			TFMEX.addTagToSong(tag, fileId);
+			console.log($newSongRow);
+			$newSongRow.before(util.buildTree(TFMEX.tagView(tag, fileId)));
+			evt.preventDefault();
+		});
 		function enableDesktopNotifications() {
 		    if(window.webkitNotifications && window.webkitNotifications.checkPermission() != 0){
 		        TFMEX.$body.bind('click.enableDesktopNotify', function() {
@@ -607,6 +738,7 @@ $(document).ready(function() {
 		},
 		checkForChange = function() {
 			var tempSongMetadata = null,
+				i = 0,
 				$songTags = $('#tfmExtended .tags div');
 			try {
 				lastSongMetadata = songMetadata;
@@ -635,6 +767,24 @@ $(document).ready(function() {
 					$this.remove();
 					localStorage.TFMEXsongTags = JSON.stringify(TFMEX.songTags);
 				});
+				if(!tagIconsAdded) {
+					if($('#playlist .song').length) {
+						$('#playlist .song').each(function() {
+							var fileId = turntable.playlist.files[i].fileId,
+								html = '';
+							html += '<a class="tag';
+							if(TFMEX.songTags[fileId].length === 0) {
+								html += ' no-tags';
+							}
+							html += '" data-file-id="';
+							html += fileId;
+							html += '"></a>';
+							$(this).append(html);
+							i += 1;
+						});
+						tagIconsAdded = true;
+					}
+				}
 			} catch(e) {
 				console.warn("Got an error whilst checking for changes",e.stack)
 			}
@@ -661,7 +811,7 @@ $(document).ready(function() {
 			updatePrefs();
 		},
 		refreshTagSongs = function() {
-			var songId, j, tag;
+			var songId, i, j, tag, sortedTags = [];
 			TFMEX.tagSongs = {};
 			for(songId in TFMEX.songTags) {
 				if(TFMEX.songTags.hasOwnProperty(songId)) {
@@ -680,6 +830,17 @@ $(document).ready(function() {
 				}
 			}
 			for(tag in TFMEX.tagSongs) {
+				if(TFMEX.tagSongs.hasOwnProperty(tag)) {
+					sortedTags.push(tag);
+				}
+			}
+			sortedTags.sort(function(a,b) {
+				var al=a.toLowerCase(),bl=b.toLowerCase();
+			 	return al==bl?(a==b?0:a<b?-1:1):al<bl?-1:1;
+			});
+			$("#tfmExtended .tag-list").html("");
+			for(i in sortedTags) {
+				tag = sortedTags[i];
 				if(TFMEX.tagSongs.hasOwnProperty(tag)) {
 					$("#tfmExtended .tag-list").append('<li data-tag="' + tag +'" class="songs-collapsed">' + tag + ' (' + TFMEX.tagSongs[tag].length + ')</li>');
 				}
@@ -1028,6 +1189,7 @@ $(document).ready(function() {
 	            // console.log("Command Undefined");
 	        }
 	    }
+		TFMEX.refreshTagSongs = refreshTagSongs;
 		extensionEventListener.prototype.TFMEXListener = true;
 	} catch(e) { console.error("Exception during initialization:",e.stack); }
 
