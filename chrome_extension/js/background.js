@@ -27,7 +27,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	} else if (request.method == "setCancelScrobble") {
 		setCancelScrobble(request.shouldCancel);
 	} else if (request.method == "findSimilarSongs") {
-		find_similar_songs(request.songMetadata, sendResponse);
+		find_similar_songs(request.songInformation, sendResponse);
 	} else if (request.method == "clearLastFMData") {
 		localStorage.removeItem("lastfm-token")
 		localStorage.removeItem("lastfm-session-token")
@@ -193,37 +193,110 @@ function create_session() {
 	//console.log("Made XHR request: "+url + '?method=' + api_call + '&' + stringify(params));
 }
 
-function find_similar_songs(songMetadata,sendResponse) {
+function find_similar_songs(songInformation,sendResponse) {
+	var currentSong = songInformation.currentSong
+	//console.debug("find_similar_songs with songLog:",songInformation.songLog)
+	
+	var songLog = TTExBGUtils.prepareSongLogForSimilarSongSearch(songInformation.songLog)
+
+	var songLogPromise = getSimilarSongsFromSongLog(songLog)
+
+	var currentSongPromise = getSimilarSongsFromLastFM(currentSong)
+
+	$.when(currentSongPromise, songLogPromise).done(function(similarToCurrentSong,similarToSongLog) {
+		var result = {}
+		result.similarToCurrentSong = similarToCurrentSong
+		result.similarToSongLog = similarToSongLog
+		sendResponse(JSON.stringify(result))
+	});
+}
+
+function randomizeSongs(songs,numberOfResults) {
+	var randomComparer = function(){ return 0.5 - Math.random() }
+	var songsClone = songs.slice(0)
+	songsClone.sort(randomComparer)
+
+	if (songsClone.length > numberOfResults) {
+		songsClone.splice(numberOfResults)
+	}
+	return songsClone
+}
+
+function getSimilarSongsFromSongLog(songLog,deferred,loggingIndent) {
+	loggingIndent = loggingIndent || "";
+	var firstTime = false
+	if (!deferred) {
+		//console.debug(loggingIndent,"Entering getSimilarSongsFromSongLog for the first time. songLog length is",songLog.length)
+		deferred = new $.Deferred();
+		firstTime = true
+	} else {
+		//console.debug(loggingIndent,"Entering getSimilarSongsFromSongLog. songLog length is",songLog.length)
+	}
+
+	if (songLog.length == 0) {
+		//console.debug(loggingIndent,"songLog is empty, resolving the deferred object with an empty array.");
+		deferred.resolve([])
+	} else {
+		var song = songLog.splice(0,1)[0]
+		//console.debug(loggingIndent,"getSimilarSongsFromSongLog: Processing song",song);
+	    //for each song, get similar songs.
+		var eachSongPromise = getSimilarSongsFromLastFM(song.metadata,27);
+
+		eachSongPromise.done(function(similarSongs) {
+			if (similarSongs.length < 5) {
+				//console.info(loggingIndent,"getSimilarSongsFromSongLog: Not enough songs (",similarSongs.length,") found for",song,"Recursing down...")
+				getSimilarSongsFromSongLog(songLog,deferred,loggingIndent + '  ')
+			} else {
+				//console.debug(loggingIndent,"getSimilarSongsFromSongLog: Randomizing",similarSongs.length ,"similar songs.",similarSongs)
+				var randomSongs = randomizeSongs(similarSongs,8)
+				//console.debug(loggingIndent,"getSimilarSongsFromSongLog: Resolving deferred object with similar songs:",similarSongs)
+				deferred.resolve(randomSongs)
+			}
+		});
+	}
+
+	if (firstTime) {
+		return deferred.promise()
+	} else {
+		return
+	}
+}
+
+function getSimilarSongsFromLastFM(songMetadata,songLimit) {
+	var dfd = new $.Deferred();
+
+	if (!songLimit) songLimit = 10;
+	
 	var params = {
 		    "method" : "track.getsimilar",
 		    "artist" : songMetadata.artist,
 		    "track" : songMetadata.song,
 		    "api_key" : api_key,
-			"limit" : "10",
+			"limit" : songLimit + '',
 		    "format" : "json"
 		},
 		url = 'http://ws.audioscrobbler.com/2.0/';
-	if(songMetadata.artist !== lastSimilarSongsMetadata.artist || songMetadata.song !== lastSimilarSongsMetadata.song) { // Prevent multiple calls for the same data from being made
-		lastSimilarSongsMetadata = songMetadata;
-		var jqXHR = $.get(url,params,function(data) {
-			var songsByOtherArtists = [];
-			var type = $.type(data.similartracks.track);
-			if (type !== "string") { //sometimes last.fm returns weird data.
-				$.each(data.similartracks.track, function(index, trackInfo) {
-					if (trackInfo.artist.name != songMetadata.artist) {
-						songsByOtherArtists.push(trackInfo);
-					}
-				});
-			}
-		
-			console.log("find_similar_songs: Sending",songsByOtherArtists.length,"songs to the content script.");
-			sendResponse(JSON.stringify(songsByOtherArtists));
-		});
-		
-		jqXHR.error(function(xhr, textStatus, errorThrown) {
-			console.warn("Background::find_similar_songs: An error occured while getting simlar songs:",errorThrown,"The text status was:",textStatus)
-		});
-	}
+
+	var jqXHR = $.get(url,params,function(data) {
+		var songsByOtherArtists = [];
+		if (data.error == null && $.type(data.similartracks.track) !== "string") { //sometimes last.fm returns weird data.
+			$.each(data.similartracks.track, function(index, trackInfo) {
+				if (trackInfo.artist.name != songMetadata.artist) {
+					songsByOtherArtists.push(trackInfo);
+				}
+			});
+		}
+
+		//console.debug("getSimilarSongsFromLastFM: resolving deferred with songs:",songsByOtherArtists)
+		dfd.resolve(songsByOtherArtists)
+	});
+
+	jqXHR.error(function(xhr, textStatus, errorThrown) {
+		console.warn("Background::getSimilarSongsFromLastFM: An error occurred while getting similar songs:",errorThrown,"The text status was:",textStatus)
+		dfd.resolve([])
+	});
+
+	return dfd.promise()
 }
 
 function find_top_tags(song,sendResponse) {

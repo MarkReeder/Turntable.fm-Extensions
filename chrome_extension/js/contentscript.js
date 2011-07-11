@@ -21,9 +21,12 @@ messagePassingContainer[0].addEventListener('tt-ext-need-lastfm-auth', function(
 setInterval("check_for_authentication()",1000);
 
 function processNewSong(songMetadata) {
-    populateSimilarSongs(songMetadata)	
+    var songLogSource = $('body').attr("data-current-song-log");
+	var songLog = songLogSource ? JSON.parse(songLogSource) : [];
+	//console.debug("Content:processNewSong: Got sending songlog to background:",songLog)
+	populateSimilarSongs(songMetadata,songLog);
 	if (localStorage["lastfm-session-token"]) {	
-		sendDataToLastFM(songMetadata)
+		sendDataToLastFM(songMetadata);
 	}
     //get events for this artist?
 }
@@ -47,10 +50,18 @@ function populateSongTags(songMetadata) {
     });
 }
 
-function populateSimilarSongs(songMetadata) {
+function populateSimilarSongs(currentSong,songLog) {
     createSuggestedSongsMarkup();
-	var suggestionsBox = $('#tt-ext-suggestions-box').empty()
-    chrome.extension.sendRequest({method: "findSimilarSongs", "songMetadata" : songMetadata}, function(response) {
+	$('#tt-ext-suggestions-box').empty()
+	var requestData = {
+		method: "findSimilarSongs",
+		songInformation: {
+			currentSong : currentSong,
+			songLog : songLog
+		}
+	}
+
+    chrome.extension.sendRequest(requestData, function(response) {
 		//send songs to injected script
 		$('body').attr('tt-ext-similar-songs',response)
 		var customEvent = document.createEvent('Event');
