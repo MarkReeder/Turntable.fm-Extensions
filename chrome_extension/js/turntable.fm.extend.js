@@ -42,9 +42,11 @@ TFMEX.performMigrations = function() {
 		if (localStorage['lastfm-session-token']) {
 			//if lastfm is configured, enable scrobbling by default
 			console.log("performMigrations: enabling scrobbling")
-			var prefs = JSON.parse(localStorage.TFMEX)
-			prefs.enableScrobbling = true
-			localStorage.TFMEX = JSON.stringify(prefs)
+			try {
+                var prefs = JSON.parse(localStorage.TFMEX)
+                prefs.enableScrobbling = true
+                localStorage.TFMEX = JSON.stringify(prefs)
+            } catch (ex) {console.warn("Error occurred whilst enabling scrobbling.",ex.stack)}
 		}
 	}
 	
@@ -478,7 +480,7 @@ $(document).ready(function() {
 	    // $("script[href$='turntable.fm.extend.dev.js']").remove();
 		// $(window).bind('beforeunload', TFMEX.clearNotifications);
 	    
-		TFMEX.performMigrations()
+        TFMEX.performMigrations()
 		$("#tfmExtended").remove();
 	    TFMEX.$body.append('<div id="tfmExtended"><div class="tag-container"><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg=="><div class="header-text">Tags</div></div><ul class="tag-list"></ul></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');	
 		var customMenuItems = [
