@@ -259,7 +259,7 @@ TFMEX.roomUserView = function(user) {
 		"div.tt.ext-room-user"
 	];
 	returnObj.push(["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]);
-    returnObj.push(["a",{href:'http://ttdashboard.com/user/f/' + user.fbid + '/',target: "_blank",class:'tt-ext-aux-link'},"on TTDashboard"])
+    returnObj.push(["a",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",class:'tt-ext-aux-link'},"on TTDashboard"])
 	/* Insert upvote messages next to user names
 	for (var i in TFMEX.roomInfo.upvoters) {
 		if(TFMEX.roomInfo.upvoters[i] === user.userid) {
