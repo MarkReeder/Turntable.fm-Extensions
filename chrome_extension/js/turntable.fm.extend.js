@@ -15,6 +15,7 @@ TFMEX.prefs = {
     "showVote": true,
     "showDJChanges": false,
     "showListenerChanges": false,
+	"tagsClosed": false,
 	"enableScrobbling":false,
     "messageTimeout": 10000
 };
@@ -355,6 +356,7 @@ TFMEX.updateQueueTagIcons = function() {
 			i += 1;
 		});
 		$('#tfmExtended .tag-list li[data-tag="___untagged___"]').html('Untagged Songs (' + TFMEX.songsUntagged.length + ')');
+		$('#tfmExtended .tag-list li[data-tag="___allsongs___"]').html('All Songs (' + turntable.playlist.files.length + ')');
 	}
 }
 
@@ -485,7 +487,8 @@ $(document).ready(function() {
 	    
         TFMEX.performMigrations()
 		$("#tfmExtended").remove();
-	    TFMEX.$body.append('<div id="tfmExtended"><div class="tag-container"><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg=="><div class="header-text">Tags</div></div><ul class="tag-list"></ul></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');	
+	    TFMEX.$body.append('<div id="tfmExtended"><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><ul class="tag-list"></ul></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');
+
 		var customMenuItems = [
 			{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
 			{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"}		
@@ -518,16 +521,7 @@ $(document).ready(function() {
 			} else {
 				songs = TFMEX.tagSongs[tag];
 			}
-			/*
-			$this.append('<ul></ul>');
-			$songList = $this.find("ul");
-			for(i in tags) {
-				if(tags.hasOwnProperty(i)) {
-					metadata = turntable.playlist.songsByFid[tags[i]].metadata;
-					$songList.append('<li><a data-song-id="' + turntable.playlist.songsByFid[tags[i]].fileId + '" class="move-top"></a><span class="title">' + metadata.song + '</span><span class="details">' + metadata.artist + '</span></li>');
-				}
-			}
-			*/
+			$('#playlist .firstInactive').removeClass('firstInactive');
 			$('#playlist .song').addClass('inactive');
 			for(i in songs) {
 				if(songs.hasOwnProperty(i)) {
@@ -538,6 +532,7 @@ $(document).ready(function() {
 					}
 				}
 			}
+			$('#playlist .song.inactive').first().addClass('firstInactive');
 			if(missingSongs.length) {
 				$.each(missingSongs, function(i, missingSong) {
 					// console.log("missing song:", missingSong);
@@ -548,6 +543,8 @@ $(document).ready(function() {
 			$this.removeClass("tag-inactive");
 			$this.closest('.tag-list').find('.tag-active').removeClass('tag-active').addClass('tag-inactive');
 			$this.addClass("tag-active");
+			$('#tfmExtended .all-tags').removeClass('tag-active');
+			$('#tfmExtended .all-tags').addClass('tag-inactive');
 		});
 
 		$('#tfmExtended .tag-list').delegate('.move-top', 'click.TFMEX', function() {
@@ -557,9 +554,39 @@ $(document).ready(function() {
 
 		$('#tfmExtended .tag-list').delegate('.tag-active', 'click.TFMEX', function() {
 			var $this = $(this);
+			$('#playlist .firstInactive').removeClass('firstInactive');
 			$('#playlist .song').removeClass('inactive');
 			$this.removeClass("tag-active");
 			$this.addClass("tag-inactive");
+			$('#tfmExtended .all-tags').addClass('tag-active');
+			$('#tfmExtended .all-tags').removeClass('tag-inactive');
+		});
+		
+		$('#tfmExtended').delegate('.closeTags', 'click.TFMEX', function() {
+			$('#tfmExtended .tag-container').animate({
+				left:'-230px'
+			}, function() {
+				$('tfmExtended .tag-container').addClass('closed');
+			});
+			$('#tfmExtended .openTags').animate({
+				left:'230px'
+			});
+			TFMEX.prefs.tagsClosed = true;
+			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
+			$('#playlist .song').removeClass('inactive');
+			$('#tfmEX .tag-list .tag-active').removeClass('tag-active').addClass('tag-inactive');
+		});
+
+		$('#tfmExtended').delegate('.openTags', 'click.TFMEX', function() {
+			$('tfmExtended .tag-container').removeClass('closed');
+			$('#tfmExtended .tag-container').animate({
+				left:'0'
+			});
+			$('#tfmExtended .openTags').animate({
+				left:'200px'
+			});
+			TFMEX.prefs.tagsClosed = false;
+			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
 		});
 		
 		$('#overlay').delegate('.remove-tag', 'click.TFMEX', function() {
@@ -655,7 +682,7 @@ $(document).ready(function() {
 			evt.preventDefault();
 		});
 		$('document').keypress(function(evt) {
-			console.log(evt);
+			// console.log(evt);
 			if (evt.keyCode === 27) {
 				evt.preventDefault();
 				$('#overlay .close-x').click();
@@ -883,9 +910,9 @@ $(document).ready(function() {
 			updatePrefs();
 		},
 		refreshTagSongs = function() {
-			var songId, i, j, tag, sortedTags = [];
+			var songId, i, j, tag, sortedTags = [], activeTag = "";
 			TFMEX.tagSongs = {};
-			console.log("TFMEX.songTags", TFMEX.songTags);
+			// console.log("TFMEX.songTags", TFMEX.songTags);
 			for(songId in TFMEX.songTags) {
 				if(TFMEX.songTags.hasOwnProperty(songId)) {
 					// console.log("Trimming songs no longer in the queue")
@@ -913,6 +940,9 @@ $(document).ready(function() {
 			 	return al==bl?(a==b?0:a<b?-1:1):al<bl?-1:1;
 			});
 			TFMEX.updateQueueTagIcons();
+			if($("#tfmExtended .tag-list .tag-active").length) {
+				activeTag = $("#tfmExtended .tag-list .tag-active").first().data("tag");
+			}
 			$("#tfmExtended .tag-list").html("");
 			for(i in sortedTags) {
 				tag = sortedTags[i];
@@ -921,6 +951,15 @@ $(document).ready(function() {
 				}
 			}
 			$("#tfmExtended .tag-list").append('<li data-tag="___untagged___" class="tag-inactive">Untagged Songs (' + TFMEX.songsUntagged.length + ')</li>');
+			$("#tfmExtended .tag-list").append('<li data-tag="___allsongs___" class="all-tags tag-inactive">All Songs (' + turntable.playlist.files.length + ')</li>');
+			if(activeTag) {
+				try {
+					$('#tfmExtended .tag-list li[data-tag="' + activeTag + '"]').removeClass('tag-inactive').addClass('tag-active');
+				} catch(e) { console.error(e.stack) }
+			} else {
+				$('#tfmExtended .all-tags').addClass('tag-active');
+				$('#tfmExtended .all-tags').removeClass('tag-inactive');
+			}
 		},
 		populateTagsColdStart = function() {
 			$('#tfmExtended .tag-list').html('Looks like you don\'t have any tags in your collection. Either <a id="getTagsFromLastFm" class="text-link">get tags from last.fm</a> or add tags manually by clicking on the tag icons in your queue.');
@@ -948,8 +987,11 @@ $(document).ready(function() {
 			if(!lastFmToken || lastFmToken === 'null') {
 				TFMEX.prefs.enableScrobbling = false //this happens if the user cancels the auth
 			}
+			if(!TFMEX.prefs.tagsClosed) {
+				$('#tfmExtended .tag-container').removeClass('closed');
+			}
 			//save them back - this way any new defaults are saved
-			localStorage.TFMEX = JSON.stringify(TFMEX.prefs)
+			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
 		},
 		showRoomUsers = function() {
 			var containers = {}
@@ -987,7 +1029,7 @@ $(document).ready(function() {
 		savePrefs = function() {
 			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
 			
-			var prefsToSave = ["showChat","showSong","showVote","showDJChanges","showListenerChanges"]
+			var prefsToSave = ["showChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed"]
 			for (var i in prefsToSave) {
 				var prefName = prefsToSave[i]
 	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
