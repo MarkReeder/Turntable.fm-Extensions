@@ -332,8 +332,9 @@ TFMEX.addTagToSong = function(tag, fileId) {
 TFMEX.updateQueueTagIcons = function() {
 	var i = 0;
 	TFMEX.songsUntagged = [];
-	if($('#playlist .song').length) {
-		$('#playlist .song').each(function() {
+	var $songsInQueue = $('#playlist .queueView .song')
+	if($songsInQueue.length && $songsInQueue.is(':visible')) {
+		$('#playlist .queueView .song').each(function() {
 			var fileId = turntable.playlist.files[i].fileId,
 				html = '',
 				$this = $(this),
