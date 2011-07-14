@@ -523,29 +523,36 @@ $(document).ready(function() {
 				songs = TFMEX.tagSongs[tag];
 			}
 			$('#playlist .firstInactive').removeClass('firstInactive');
-			$('#playlist .song').addClass('inactive');
-			for(i in songs) {
-				if(songs.hasOwnProperty(i)) {
-					taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive');
-					numTaggedSongs = taggedSongs.length;
-					if(numTaggedSongs === 0) {
-						missingSongs.push(songs[i])
+			if(tag === "___allsongs___") {
+				$('#playlist .song').removeClass('inactive');
+				$this.closest('.tag-list').find('.tag-active').removeClass('tag-active').addClass('tag-inactive');
+				$('#tfmExtended .all-tags').addClass('tag-active');
+				$('#tfmExtended .all-tags').removeClass('tag-inactive');
+			} else {
+				$('#playlist .song').addClass('inactive');
+				for(i in songs) {
+					if(songs.hasOwnProperty(i)) {
+						taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive');
+						numTaggedSongs = taggedSongs.length;
+						if(numTaggedSongs === 0) {
+							missingSongs.push(songs[i])
+						}
 					}
 				}
+				$('#playlist .song.inactive').first().addClass('firstInactive');
+				if(missingSongs.length) {
+					$.each(missingSongs, function(i, missingSong) {
+						// console.log("missing song:", missingSong);
+						delete TFMEX.songTags[missingSong];
+						TFMEX.refreshTagSongs();
+					});
+				}
+				$this.removeClass("tag-inactive");
+				$this.closest('.tag-list').find('.tag-active').removeClass('tag-active').addClass('tag-inactive');
+				$this.addClass("tag-active");
+				$('#tfmExtended .all-tags').removeClass('tag-active');
+				$('#tfmExtended .all-tags').addClass('tag-inactive');
 			}
-			$('#playlist .song.inactive').first().addClass('firstInactive');
-			if(missingSongs.length) {
-				$.each(missingSongs, function(i, missingSong) {
-					// console.log("missing song:", missingSong);
-					delete TFMEX.songTags[missingSong];
-					TFMEX.refreshTagSongs();
-				});
-			}
-			$this.removeClass("tag-inactive");
-			$this.closest('.tag-list').find('.tag-active').removeClass('tag-active').addClass('tag-inactive');
-			$this.addClass("tag-active");
-			$('#tfmExtended .all-tags').removeClass('tag-active');
-			$('#tfmExtended .all-tags').addClass('tag-inactive');
 		});
 
 		$('#tfmExtended .tag-list').delegate('.move-top', 'click.TFMEX', function() {

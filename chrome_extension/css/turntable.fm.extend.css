@@ -72,7 +72,7 @@
 .tag-container .openTags { position: absolute; padding: 5px; z-index: -1; left: 200px; background-color: #555; height: 60px; -webkit-border-top-right-radius: 5px; -webkit-border-bottom-right-radius: 5px; }
 .tag-container .openTags .vertical-text { width: 16px; }
 .vertical-text { display: block; -webkit-transform:rotate(90deg); }
-.tag-list { padding: 5px; background-color: #ddd; height: 662px; width: 220px; overflow-y: auto; font-size: .8em; }
+.tag-list { padding: 5px; background-color: #ddd; height: 666px; width: 220px; overflow-y: auto; font-size: .8em; }
 .tag-list .tag-active,
 .tag-list .tag-inactive { cursor: pointer; }
 .tag-list .tag-active { background-color: yellow; }
@@ -89,6 +89,7 @@
 #playlist .song .no-tags { background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAR9JREFUeNqkUl0KgkAQzuh9810wEBQEwSPYDTpC3qDT+LxH6AZ5g9Yb9OiD4B8oij/NLClmmxUNfDs6rt988yP1fb/6xzZ4eJ53BWeLLkACCu7EGEtF39d4tG1rA1Zd1/ngE3weALEjxi3LIksEiFsQBHvw5ynBA5jAN02TCAmapkHsDMO4gD883p8wkOi6Tt4pQDiArUDBqATL0TSNiBR8C65EVVUyTgHZfzScmK8oijMQ4KiOv5LAiH1OAHWdAPa7XVgi4T0IwzAFAmwgW2igCHQzUEVRlMqy7GCXv1EiSRJNksRdT4NxHKdQ10clkIT/PI5xalmWfSqH5nnuPu3B3Iqi4CQwczbbRlqWpfuyiSKrqmquhNZ17c7v3QUYAPXTfe0LGKkPAAAAAElFTkSuQmCC'); }
 #playlist .song.inactive { display: none; }
 #playlist .song.firstInactive { display: block; height: 3px; background-color: red; }
+#playlist .song.firstInactive * { display: none; }
 
 .tt-ext-song-tags {margin:0 auto; padding: 5px 5px; background-color:white;border-bottom:1px solid #E6E6E6;}
 .tt-ext-song-tags span { color:#333; text-align: left; text-shadow: none;}
