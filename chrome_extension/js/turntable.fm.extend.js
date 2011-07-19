@@ -430,7 +430,7 @@ $(document).ready(function() {
 				if(turntable[o] !== null) {
 					for(var o2 in turntable[o]) {
 						if(turntable[o][o2] !== null) {
-							if(o2 == 'currentDj') {
+							if(o2 == 'creatorId') {
 								// console.log("currentDj found in: ", o);
 								TFMEX.roomInfo = turntable[o];
 								break;
