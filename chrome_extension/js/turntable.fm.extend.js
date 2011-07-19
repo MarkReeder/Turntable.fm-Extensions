@@ -409,6 +409,32 @@ TFMEX.findSongInQueue = function(fileId) {
 	}
 }
 
+TFMEX.getXSPF = function(songArray) {
+    var XSPF = '<?xml version="1.0" encoding="UTF-8"?>';
+    
+    XSPF += '<playlist version="1" xmlns="http://xspf.org/ns/0/">';
+    XSPF += '<title></title>';
+    
+    XSPF += '<trackList>';
+    $.each(songArray, function(index, value) {
+        XSPF += '<creator>' + this.metadata.artist + '</creator>';
+        XSPF += '<track>' + this.metadata.song + '</track>';
+        if(this.metadata.album) {
+            XSPF += '<album>' + this.metadata.album + '</album>';
+        }
+        if(this.metadata.coverart) {
+            XSPF += '<image>' + this.metadata.coverart + '</image>';
+            
+        }
+        XSPF += '<duration>' + this.metadata.length * 1000 + '</duration>';
+    });
+    XSPF += '<trackList>';
+    
+    XSPF += '</playlist>';
+    
+    return XSPF;
+}
+
 $(document).ready(function() {
 	var tKeysLength = Object.keys(turntable).length,
 		lastPlayedSong = {},
@@ -574,7 +600,8 @@ $(document).ready(function() {
 			});
 			TFMEX.prefs.tagsClosed = true;
 			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
-			$('#playlist .song').removeClass('inactive');
+			$('#playlist .song .inactive').removeClass('inactive');
+			$('#playlist .song .firstInactive').removeClass('firstInactive');
 			$('#tfmEX .tag-list .tag-active').removeClass('tag-active').addClass('tag-inactive');
 		});
 
