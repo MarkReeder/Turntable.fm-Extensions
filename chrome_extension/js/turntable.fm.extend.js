@@ -410,25 +410,27 @@ TFMEX.findSongInQueue = function(fileId) {
 }
 
 TFMEX.getXSPF = function(songArray) {
-    var XSPF = '<?xml version="1.0" encoding="UTF-8"?>';
+    var XSPF = '<?xml version="1.0" encoding="UTF-8"?>\n';
     
-    XSPF += '<playlist version="1" xmlns="http://xspf.org/ns/0/">';
-    XSPF += '<title></title>';
+    XSPF += '<playlist version="1" xmlns="http://xspf.org/ns/0/">\n';
+    XSPF += '<title></title>\n';
     
-    XSPF += '<trackList>';
+    XSPF += '<trackList>\n';
     $.each(songArray, function(index, value) {
-        XSPF += '<creator>' + this.metadata.artist + '</creator>';
-        XSPF += '<track>' + this.metadata.song + '</track>';
+        XSPF += '<track>';
+        XSPF += '<creator>' + $('<div/>').text(this.metadata.artist).html() + '</creator>';
+        XSPF += '<title>' + $('<div/>').text(this.metadata.song).html() + '</title>';
         if(this.metadata.album) {
-            XSPF += '<album>' + this.metadata.album + '</album>';
+            XSPF += '<album>' + $('<div/>').text(this.metadata.album).html() + '</album>';
         }
         if(this.metadata.coverart) {
             XSPF += '<image>' + this.metadata.coverart + '</image>';
             
         }
         XSPF += '<duration>' + this.metadata.length * 1000 + '</duration>';
+        XSPF += '</track>\n';
     });
-    XSPF += '<trackList>';
+    XSPF += '</trackList>\n';
     
     XSPF += '</playlist>';
     
