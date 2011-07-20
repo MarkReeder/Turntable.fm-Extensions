@@ -549,7 +549,7 @@ $(document).ready(function() {
 				var similarToCurrentSong = allSimilarSongs.similarToCurrentSong
 				var similarToSongLog = allSimilarSongs.similarToSongLog
 				var arrayToUse = similarToSongLog, source = "based on this room's most popular tracks"
-				if (similarToSongLog.length == 0) {
+				if (!similarToSongLog || similarToSongLog.length == 0) {
 					arrayToUse = similarToCurrentSong;
 					source = "based on the current song"
 				}
@@ -841,7 +841,14 @@ $(document).ready(function() {
 						delete song.starttime;
 						*/
 						// console.log(startTime, song);
+					}    
+					if (TFMEX.songlog) {
+						//console.debug("Setting data-current-song-log to",TFMEX.songlog,new Error().stack)
+						TFMEX.$body.attr("data-current-song-log",JSON.stringify(TFMEX.songlog))
+					} else {
+						TFMEX.$body.attr("data-current-song-log","[]")
 					}
+					raiseNewRoomInfoEvent();
 					TFMEX.$body.trigger("ttfm-got-room-info")
 				});
 			} catch(e) {console.error("Exception occured in getRoomInfo",e.stack)}
@@ -896,7 +903,7 @@ $(document).ready(function() {
 					//console.debug("In updateCurrentSongAndDispatchEvents. fromRoomChange:",fromRoomChange)
 					if (fromRoomChange) {
 						TFMEX.$body.unbind("ttfm-got-room-info",boundHandler)
-						//console.debug("Unbound the ttfm-got-room-info handler")
+						// console.debug("Unbound the ttfm-got-room-info handler")
 					}
 					if(TFMEX.roomInfo && TFMEX.roomInfo.currentSong) {
 						songMetadata = TFMEX.roomInfo.currentSong.metadata;
@@ -904,12 +911,6 @@ $(document).ready(function() {
 							// console.log("Found a change!");
 							lastSongMetadata = songMetadata;
 							TFMEX.$body.attr("data-current-song-obj", JSON.stringify(songMetadata));
-							if (TFMEX.songlog) {
-								//console.debug("Setting data-current-song-log to",TFMEX.songlog,new Error().stack)
-								TFMEX.$body.attr("data-current-song-log",JSON.stringify(TFMEX.songlog))
-							} else {
-								TFMEX.$body.attr("data-current-song-log","[]")
-							}
 							$('#tt-ext-suggestions-link').fadeOut(250)
 							updateNowPlaying(songMetadata);
 							raiseNewSongEvent();
@@ -1238,6 +1239,9 @@ $(document).ready(function() {
 		},
 		raiseNewSongEvent = function() { //sends it to the content script
 			dispatchEventToContentScript('tt-ext-new-song-event')
+		},
+		raiseNewRoomInfoEvent = function() {
+			dispatchEventToContentScript('tt-ext-new-room-info')
 		},
 		getSendMessageFunction = function() {
 			var messageFunctionName = $('body').data('tt-ext-messageFunctionName')

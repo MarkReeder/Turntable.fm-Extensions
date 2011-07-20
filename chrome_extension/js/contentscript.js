@@ -14,11 +14,24 @@ var messagePassingContainer = $("<div/>").attr("id","tt-ext-mpd").appendTo("body
 messagePassingContainer[0].addEventListener('tt-ext-new-song-event', function() {
     processNewSong(JSON.parse($("body").attr("data-current-song-obj")));
 });
+messagePassingContainer[0].addEventListener('tt-ext-new-room-info', function() {
+    // console.log("New room info");
+    if($("body").attr("data-current-song-obj")) { // Only processNewRoomInfo if we also have a current-song-obj
+        processNewRoomInfo(JSON.parse($("body").attr("data-current-song-obj")));
+    }
+});
 messagePassingContainer[0].addEventListener('tt-ext-need-lastfm-auth', function() {
     get_authenticated();
 });
 
 setInterval("check_for_authentication()",1000);
+
+function processNewRoomInfo(songMetadata) {
+    var songLogSource = $('body').attr("data-current-song-log");
+    var songLog = songLogSource ? JSON.parse(songLogSource) : [];
+    //console.debug("Content:processNewSong: Got sending songlog to background:",songLog)
+    populateSimilarSongs(songMetadata,songLog);
+}
 
 function processNewSong(songMetadata) {
     var songLogSource = $('body').attr("data-current-song-log");
@@ -52,6 +65,7 @@ function populateSongTags(songMetadata) {
 
 function populateSimilarSongs(currentSong,songLog) {
     createSuggestedSongsMarkup();
+	$('body').attr('tt-ext-similar-songs','');
 	$('#tt-ext-suggestions-box').empty()
 	var requestData = {
 		method: "findSimilarSongs",
@@ -59,11 +73,12 @@ function populateSimilarSongs(currentSong,songLog) {
 			currentSong : currentSong,
 			songLog : songLog
 		}
-	}
+	}    
+	// console.log("requestData", requestData);
 
     chrome.extension.sendRequest(requestData, function(response) {
 		//send songs to injected script
-		$('body').attr('tt-ext-similar-songs',response)
+		$('body').attr('tt-ext-similar-songs',response);
 		var customEvent = document.createEvent('Event');
 		customEvent.initEvent('tt-ext-process-similar-songs', true, true);
 		$('#tt-ext-mpd')[0].dispatchEvent(customEvent)

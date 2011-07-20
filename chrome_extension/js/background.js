@@ -198,6 +198,7 @@ function find_similar_songs(songInformation,sendResponse) {
 	//console.debug("find_similar_songs with songLog:",songInformation.songLog)
 	
 	var songLog = TTExBGUtils.prepareSongLogForSimilarSongSearch(songInformation.songLog)
+	// console.log("songLog", songLog);
 
 	var songLogPromise = getSimilarSongsFromSongLog(songLog)
 

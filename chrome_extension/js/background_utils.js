@@ -18,11 +18,6 @@ TTExBGUtils.prepareSongLogForSimilarSongSearch = function(songLog) {
 
 	if (songLog.length < numMostRecentSongsToConsider) return	[]
 
-	//only keep the newest 10
-	if (songLog.length > numMostRecentSongsToConsider) {
-		songLog = songLog.slice(songLog.length - numMostRecentSongsToConsider)
-	}
-
 	var sortedSongLog = songLog.sort(function(a,b) {
 		if (a.score < b.score) return 1;
 		if (a.score > b.score) return -1;
@@ -32,6 +27,11 @@ TTExBGUtils.prepareSongLogForSimilarSongSearch = function(songLog) {
 	var filteredSongLog = $.grep(sortedSongLog,function(element,index) {
 		return Math.round(element.score * 100) >= minScore
 	});
+
+	//only keep a maximum of 10
+	if (filteredSongLog.length > numMostRecentSongsToConsider) {
+		filteredSongLog = filteredSongLog.slice(filteredSongLog.length - numMostRecentSongsToConsider)
+	}
 	
 	return filteredSongLog
 }
