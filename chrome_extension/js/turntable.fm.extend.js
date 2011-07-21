@@ -258,11 +258,20 @@ TFMEX.roomUserView = function(user) {
 		userVote = [],
 		userVoteText = "",
 		returnObj = null;
+	var userIsMod = user.userid == TFMEX.roomInfo.moderatorId
+	var divTag = "div.tt-ext-room-user"
+	if (userIsMod) divTag += ".tt-ext-room-mod"
 	returnObj = [
-		"div.tt.ext-room-user"
+		divTag
 	];
-	returnObj.push(["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]);
-    returnObj.push(["a",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",class:'tt-ext-aux-link'},"on TTDashboard"])
+	var userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]]
+	if (userIsMod) {
+//		returnObj.push({style:{'background-color':'#ffa'}})
+		//returnObj.push(["span","(mod)"])
+		userNameSpan.push("(mod)")
+	}
+	returnObj.push(userNameSpan);
+    returnObj.push(["a.tt-ext-cell.tt-ext-aux-link",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank"},"on TTDashboard"])
 	/* Insert upvote messages next to user names
 	for (var i in TFMEX.roomInfo.upvoters) {
 		if(TFMEX.roomInfo.upvoters[i] === user.userid) {
