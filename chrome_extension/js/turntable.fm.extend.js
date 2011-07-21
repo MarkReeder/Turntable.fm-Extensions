@@ -463,7 +463,7 @@ TFMEX.getXSPF = function(songArray, playlistTitle) {
     var XSPF = '<?xml version="1.0" encoding="UTF-8"?>\n';
     
     XSPF += '<playlist version="1" xmlns="http://xspf.org/ns/0/">\n';
-    XSPF += '<title>' + playlistTitle?playlistTitle:'Exported from Turntable.fm' + '</title>\n';
+    XSPF += '<title>Exported from Turntable.fm</title>\n';
     
     XSPF += '<trackList>\n';
     $.each(songArray, function(index, value) {
