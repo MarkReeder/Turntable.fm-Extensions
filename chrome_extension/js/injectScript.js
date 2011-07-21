@@ -1,1 +1,1 @@
-document.body.appendChild(document.createElement('script')).src=chrome.extension.getURL("js/turntable.fm.extend.js?v=0.5.0.4_" + new Date().getTime());
+document.body.appendChild(document.createElement('script')).src=chrome.extension.getURL("js/turntable.fm.extend.js?v=0.6_" + new Date().getTime());
