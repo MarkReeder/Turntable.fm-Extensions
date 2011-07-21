@@ -1,8 +1,12 @@
-A Bookmarklet to add functionality to turntable.fm
+Welcome to the github repo for Turntable.FM Extended, a Google Chrome extension that adds features to the excellent Turntable.FM.
 
-This is the home of the source code, if you're just interested in installing the Chrome Extension, it's available for free on the Chrome Web Store here: https://chrome.google.com/webstore/detail/mnciafhfaahhafklckmcabbncbgcjpeg
+This is the home of the source code, if you're just interested in installing the Chrome Extension, it's available for free on the Chrome Web Store here: https://chrome.google.com/webstore/detail/mnciafhfaahhafklckmcabbncbgcjpeg?utm_source=github_README1
 
 Current Features include:
+
+    Last.fm Scrobbling
+
+    Suggested songs based on the room's popular tracks
 
     HTML5 Desktop Notifications for the following: (Chrome Only)
         Chat messages (pretty buggy at the moment)
@@ -11,8 +15,8 @@ Current Features include:
         DJ Changes - know when DJs step up to or down from the decks
         Listener Changes - know who has just entered or exited the room
 
-    Auto Awesome support (inspired by J2 Labs' initial implementation which was built based on @Tivs' hack)
+    Highlighting recently played tracks in your playlist
 
-    Vote Log (currently in the preferences menu)
+    View Room Users (along with their profiles on TTDashboard.com)
 
-    Last.fm Scrobbling (courtesy https://github.com/gabek/TurntableScrobbler)
+The bookmarklet (for browsers other than Chrome) is no longer mainatined. Please use Google Chrome and install this extension from https://chrome.google.com/webstore/detail/mnciafhfaahhafklckmcabbncbgcjpeg?utm_source=github_README2.
