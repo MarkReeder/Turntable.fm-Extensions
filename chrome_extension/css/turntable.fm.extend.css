@@ -1,3 +1,5 @@
+.hidden { display: none; }
+
 #tfmExtended { position: absolute; top: 0; left: 50%; margin-left: 380px; z-index: 1; width: 45px; }
 #tfmExtended .settings { position: relative; }
 #tfmExtended .settings .gear { position: absolute; width: 45px; height: 45px; background: url('http://globalplaylist.com/images/gear-32x32.png') no-repeat center center #646464; }
@@ -13,6 +15,8 @@
 .tt-ext-pref-section {margin-top:20px;width:300px;clear:both;}
 .tt-ext-pref-header {margin:10px auto;}
 .tt-ext-pref-body {font-size:16px}
+#overlay .tt-ext-export { width: 540px; }
+.tt-ext-export br { line-height: 2em; }
 
 #tfmExtended .hidden { display: none; }
 #tfmExtended .clL { clear: left; }
@@ -35,6 +39,7 @@
 #right-panel .matchesRecentlyPlayedExactly.topSong { background-color: #FEE8AF; }
 
 #tt-ext-mpd {display:none;}
+#tt-ex-export { width: 500px; height: 200px; }
 
 #tt-ext-suggestions-link {display:none;margin-top:5px;font-size:14px;text-align:right;margin-right:3px;color:#2E9AEB;cursor:pointer;}
 #tt-ext-suggestions-link.tt-ext-link-disabled {color:#555;cursor:default;}

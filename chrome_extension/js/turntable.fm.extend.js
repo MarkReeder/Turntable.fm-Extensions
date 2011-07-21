@@ -221,7 +221,44 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 			"div.tt-ext-pref-section",
 				["div.save-changes.centered-button",{event:{click:saveEvent}}]
 		]
-	]	
+	]
+}
+
+
+
+TFMEX.exportView = function(cancelEvent) {
+	return [
+		"div.modal.tt-ext-export",
+		{
+			
+		},
+		[
+			"div.close-x",
+			{
+				event: {
+					click: cancelEvent //turntable.hideOverlay
+				}
+			} 
+		],
+		[
+			"h2",
+			"Export XSPF"
+		],
+		[
+			"div.tt-ext-export-section",
+			[
+			    "a",{id:"tt-ex-export-queue"},"Export your song queue"
+			],
+			["br"],
+			[
+			    "a",{id:"tt-ex-export-recent"},"Export songs recently played in this room"
+			],
+    		["br"],
+			[
+			    "textarea",{id:"tt-ex-export"}
+			]
+		]
+	]
 }
 
 TFMEX.roomUsersView = function() {
@@ -257,15 +294,19 @@ TFMEX.roomUserView = function(user) {
 	var userLink = null,
 		userVote = [],
 		userVoteText = "",
-		returnObj = null;
-	var userIsMod = user.userid == TFMEX.roomInfo.moderatorId
-	var divTag = "div.tt-ext-room-user"
-	if (userIsMod) divTag += ".tt-ext-room-mod"
+		returnObj = null,
+	    userIsMod = user.userid === TFMEX.roomInfo.moderatorId,
+	    userIsCreator = user.userid === TFMEX.roomInfo.creatorId,
+	    divTag = "div.tt-ext-room-user";
+	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod"
 	returnObj = [
 		divTag
 	];
 	var userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]]
-	if (userIsMod) {
+	
+	if (userIsCreator) {
+	    userNameSpan.push("(creator)")
+	} else if (userIsMod) {
 //		returnObj.push({style:{'background-color':'#ffa'}})
 		//returnObj.push(["span","(mod)"])
 		userNameSpan.push("(mod)")
@@ -418,11 +459,11 @@ TFMEX.findSongInQueue = function(fileId) {
 	}
 }
 
-TFMEX.getXSPF = function(songArray) {
+TFMEX.getXSPF = function(songArray, playlistTitle) {
     var XSPF = '<?xml version="1.0" encoding="UTF-8"?>\n';
     
     XSPF += '<playlist version="1" xmlns="http://xspf.org/ns/0/">\n';
-    XSPF += '<title></title>\n';
+    XSPF += '<title>' + playlistTitle?playlistTitle:'Exported from Turntable.fm' + '</title>\n';
     
     XSPF += '<trackList>\n';
     $.each(songArray, function(index, value) {
@@ -523,14 +564,16 @@ $(document).ready(function() {
 
 			var customMenuItems = [
 				{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
-				{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"}
+				{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"},
+				{ name:"Export XSPF", callback: function(){ showExport() }, elementId:"tt-ext-export-menu-item"}
 			]
 
 			$.each(customMenuItems,function (i,menuItem) {
 				var pos = $('#menuh .menuItem').length - 2
+				// console.log(pos);
 				var tree = TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId)
 				if (tree) {
-					//console.log("Creating menu item",menuItem.name,"with tree",tree)
+					// console.log("Creating menu item",menuItem.name,"with tree",tree)
 					$("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(tree))
 				}
 			});
@@ -551,6 +594,14 @@ $(document).ready(function() {
 					$('#tt-ext-suggestions-link').addClass("tt-ext-link-disabled")
 					$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are available.")
 				}
+			});
+			$('#tt-ex-export-queue').live('click', function(evt) {
+    			evt.preventDefault();
+    			$('#tt-ex-export').val(TFMEX.getXSPF(turntable.playlist.files)).select();
+			});
+			$('#tt-ex-export-recent').live('click', function(evt) {
+			    evt.preventDefault();
+    			$('#tt-ex-export').val(TFMEX.getXSPF(TFMEX.songlog)).select();
 			});
 			$('#tt-ext-suggestions-link').live('click', function() {
 					//$('#tt-ext-suggestions-box').dialog()
@@ -1057,6 +1108,11 @@ $(document).ready(function() {
 			
 			turntable.showOverlay(markup)
 		}
+		showExport = function() {
+            var markup = util.buildTree(TFMEX.exportView(turntable.hideOverlay));
+
+            turntable.showOverlay(markup)
+		},
 		showPrefs = function() {
 			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,savePrefs))
 			var $markup = $(markup)

@@ -83,7 +83,7 @@ TFMEX.votelog = [];
     $("script[href$='turntable.fm.extend.dev.js']").remove();
     $("link[href$='turntable.fm.extend.css']").remove();
     $(document.createElement('link')).attr({
-    href: TFMEX.BASE_HOSTNAME+'/css/turntable.fm.extend.css',
+    href: TFMEX.BASE_HOSTNAME+'/css/turntable.fm.extend.css?v='+new Date().getTime(),
     media: 'screen',
     type: 'text/css',
     rel: 'stylesheet'
