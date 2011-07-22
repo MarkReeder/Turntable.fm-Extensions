@@ -266,7 +266,7 @@ TFMEX.roomUsersView = function() {
 		"div.modal.roomUsersOverlay",
 		{
 			style: {
-				width:"450px",
+				width:"600px",
 				"padding-left":0,
 				"padding-right":0,
 				"padding-bottom":0			 
@@ -295,27 +295,46 @@ TFMEX.roomUserView = function(user) {
 		userVote = [],
 		userVoteText = "",
 		returnObj = null,
+		userIsSelf = user.userid === TFMEX.roomInfo.selfId,
 	    userIsMod = user.userid === TFMEX.roomInfo.moderatorId,
 	    userIsCreator = user.userid === TFMEX.roomInfo.creatorId,
-	    userIsOnDeck = jQuery.inArray(user.userid, TFMEX.roomInfo.djIds),
-	    divTag = "div.tt-ext-room-user";
+	    userIsSuper = user.acl === 1,
+	    userIsOnDeckPosition = jQuery.inArray(user.userid, TFMEX.roomInfo.djIds),
+	    fanOf = user.fanof,
+	    divTag = "div.tt-ext-room-user",
+	    userNameSpan = [],
+	    auxSpan = [];
 	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod"
 	returnObj = [
 		divTag
 	];
-	var userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]]
-	
+	userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]];
+
 	if (userIsCreator) {
-	    userNameSpan.push("(creator)");
+	    userNameSpan.push("(Creator)");
 	} else if (userIsMod) {
-		userNameSpan.push("(mod)");
+		userNameSpan.push("(Mod)");
+	}
+	if(userIsSuper) {
+	    userNameSpan.push("(Super)");
 	}
 	
-	if(userIsOnDeck > -1) {
-	    userNameSpan.push("(DJ)")
+	if(userIsOnDeckPosition > -1) {
+	    userNameSpan.push("(DJ)");
+	}
+	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank"},"on TTDashboard"]];
+	if(!userIsSelf) {
+    	if(fanOf) {
+    	    auxSpan.push(["a",{href:"javascript:TFMEX.roommanager.callback('remove_fan', '" + user.userid + "')"},"Unfan"]);
+    	} else {
+        	auxSpan.push(["a",{href:"javascript:TFMEX.roommanager.callback('become_fan', '" + user.userid + "')"},"Become a Fan"]);
+    	}
+    	if(TFMEX.roomInfo.isMod(TFMEX.roomInfo.selfId)) {
+        	auxSpan.push(["a",{href:"javascript:TFMEX.roommanager.callback('boot_user', '" + user.userid + "')"},"Boot"]);
+    	}
 	}
 	returnObj.push(userNameSpan);
-    returnObj.push(["a.tt-ext-cell.tt-ext-aux-link",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank"},"on TTDashboard"])
+    returnObj.push(auxSpan);
 	/* Insert upvote messages next to user names
 	for (var i in TFMEX.roomInfo.upvoters) {
 		if(TFMEX.roomInfo.upvoters[i] === user.userid) {
