@@ -1288,7 +1288,12 @@ $(document).ready(function() {
 				lastPlayedSong = songObj;
 				songToMatch.metadata = songObj;
 				// console.log("updateNowPlaying: ", songObj);
-
+                $.each(TFMEX.votelog, function() {
+                    // Reset turned away down voters
+                    if(this[1] == "down") {
+                        turnToward(TFMEX.roommanager.listeners[this[0]].layers);
+                    }
+                });
 		        TFMEX.votelog = [];
 
 				try {
@@ -1350,6 +1355,16 @@ $(document).ready(function() {
 			}
 			return messageFunc
 		},
+        turnAway = function(layers) {
+	        $(layers.headback).css('display', 'none');
+		    $(layers.headfront).css('display', 'block');
+        },
+        turnToward = function(layers) {
+            console.log("turnToward", layers);
+	        $(layers.headback).css('display', 'block');
+		    $(layers.headfront).css('display', 'none');
+		    $(layers.headfront).css('top', 0);
+        },
 	    extensionEventListener = function(m){
 
 	        var songMetadata = null,
@@ -1432,7 +1447,10 @@ $(document).ready(function() {
                                 if (latestSong) latestSong.score = score
                             }
                         }
-                        TFMEX.votelog = m.room.metadata.votelog;
+                        // console.log(m.room.metadata.votelog);
+                        $.each(m.room.metadata.votelog, function() {
+                            TFMEX.votelog.push(this);
+                        });
 	                    var currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
 						if(currentVote[0] === TFMEX.roommanager.myuserid) {
 							if(currentVote[1] == "down") {
@@ -1440,6 +1458,15 @@ $(document).ready(function() {
 							} else {
 								$("body").attr("data-cancel-scrobble", false);
 							}
+						}
+						if(currentVote[1] == "down") {
+						    if(TFMEX.roommanager.listeners[currentVote[0]]) {
+						        turnAway(TFMEX.roommanager.listeners[currentVote[0]].layers);
+						    } else {
+						        // Deal with DJs on deck
+						    }
+						} else {
+						    turnToward(TFMEX.roommanager.listeners[currenVote[0]].layers);
 						}
 	                    try {
 	                        if(TFMEX.prefs.showVote) {
