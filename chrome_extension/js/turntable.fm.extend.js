@@ -297,6 +297,7 @@ TFMEX.roomUserView = function(user) {
 		returnObj = null,
 	    userIsMod = user.userid === TFMEX.roomInfo.moderatorId,
 	    userIsCreator = user.userid === TFMEX.roomInfo.creatorId,
+	    userIsOnDeck = jQuery.inArray(user.userid, TFMEX.roomInfo.djIds),
 	    divTag = "div.tt-ext-room-user";
 	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod"
 	returnObj = [
@@ -305,11 +306,13 @@ TFMEX.roomUserView = function(user) {
 	var userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]]
 	
 	if (userIsCreator) {
-	    userNameSpan.push("(creator)")
+	    userNameSpan.push("(creator)");
 	} else if (userIsMod) {
-//		returnObj.push({style:{'background-color':'#ffa'}})
-		//returnObj.push(["span","(mod)"])
-		userNameSpan.push("(mod)")
+		userNameSpan.push("(mod)");
+	}
+	
+	if(userIsOnDeck > -1) {
+	    userNameSpan.push("(DJ)")
 	}
 	returnObj.push(userNameSpan);
     returnObj.push(["a.tt-ext-cell.tt-ext-aux-link",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank"},"on TTDashboard"])
@@ -1095,12 +1098,20 @@ $(document).ready(function() {
 			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
 		},
 		showRoomUsers = function() {
-			var containers = {}
-			var markup = util.buildTree(TFMEX.roomUsersView(),containers)
+			var containers = {},
+			    markup = util.buildTree(TFMEX.roomUsersView(),containers),
+			    $usersContainer = $(containers.users),
+			    sortedUsers = [];
 			
-			var $usersContainer = $(containers.users)
+			$.each(TFMEX.roomInfo.users, function(index, user) {
+			    sortedUsers.push(user);
+			});
 			
-			$.each(TFMEX.roomInfo.users,function(index, user) {
+			sortedUsers.sort(function(a,b) {
+				var al=a.name.toLowerCase(),bl=b.name.toLowerCase();
+			 	return al==bl?(a==b?0:a<b?-1:1):al<bl?-1:1;
+			});
+			$.each(sortedUsers,function(index, user) {
 				var tree = TFMEX.roomUserView(user)
 				var userMarkup = util.buildTree(tree)
 				$usersContainer.append(userMarkup)
