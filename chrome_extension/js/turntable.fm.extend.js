@@ -309,6 +309,14 @@ TFMEX.roomUserView = function(user) {
 		divTag
 	];
 	userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]];
+	
+	if(TFMEX.userVotes[user.userid]) {
+	    if(TFMEX.userVotes[user.userid] === "up") {
+    	    userNameSpan.push(["span.vote.upVote"]);
+	    } else {
+    	    userNameSpan.push(["span.vote.downVote"]);
+	    }
+	}
 
 	if (userIsCreator) {
 	    userNameSpan.push("(Creator)");
@@ -325,12 +333,12 @@ TFMEX.roomUserView = function(user) {
 	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank"},"on TTDashboard"]];
 	if(!userIsSelf) {
     	if(fanOf) {
-    	    auxSpan.push(["a",{href:"javascript:TFMEX.roommanager.callback('remove_fan', '" + user.userid + "')"},"Unfan"]);
+    	    auxSpan.push(["a.fan.evtToggleFan",{title:"Unfan",'data-userid':user.userid,href:"javascript:"},""]);
     	} else {
-        	auxSpan.push(["a",{href:"javascript:TFMEX.roommanager.callback('become_fan', '" + user.userid + "')"},"Become a Fan"]);
+        	auxSpan.push(["a.fan.notFan.evtToggleFan",{title:"Become a Fan",'data-userid':user.userid,href:"javascript:"},""]);
     	}
     	if(TFMEX.roomInfo.isMod(TFMEX.roomInfo.selfId)) {
-        	auxSpan.push(["a",{href:"javascript:TFMEX.roommanager.callback('boot_user', '" + user.userid + "')"},"Boot"]);
+        	auxSpan.push(["a.evtBootUser.bootUser",{'data-userid':user.userid,href:"javascript:"},"Boot"]);
     	}
 	}
 	returnObj.push(userNameSpan);
@@ -347,6 +355,24 @@ TFMEX.roomUserView = function(user) {
 	}
 	*/
 	return returnObj;
+}
+
+TFMEX.bootUser = function(element) {
+    var $element = $(element);
+    TFMEX.roommanager.callback('boot_user', $element.data("userid"));
+}
+
+TFMEX.toggleFan = function(element) {
+    var $element = $(element);
+    if($element.hasClass("notFan")) {
+        TFMEX.roommanager.callback('become_fan', $element.data("userid"));
+        $element.removeClass("notFan");
+        $element.attr('title','Unfan');
+    } else {
+        TFMEX.roommanager.callback('remove_fan', $element.data("userid"));
+        $element.addClass("notFan");
+        $element.attr('title','Become a Fan');
+    }
 }
 
 TFMEX.tagView = function(tag, fileId) {
@@ -675,6 +701,12 @@ $(document).ready(function() {
 					}
 
 			});
+			$('.evtToggleFan').live('click', function(evt) {
+			   TFMEX.toggleFan($(evt.target)) ;
+			});
+   			$('.evtBootUser').live('click', function(evt) {
+   			   TFMEX.bootUser($(evt.target)) ;
+   			});
 		}
 
 		$("*").undelegate(".TFMEX")
@@ -1135,7 +1167,11 @@ $(document).ready(function() {
 			    markup = util.buildTree(TFMEX.roomUsersView(),containers),
 			    $usersContainer = $(containers.users),
 			    sortedUsers = [];
+			TFMEX.userVotes = {};
 			
+			$.each(TFMEX.votelog, function(index, user) {
+    			TFMEX.userVotes[this[0]] = this[1];
+			});
 			$.each(TFMEX.roomInfo.users, function(index, user) {
 			    sortedUsers.push(user);
 			});
@@ -1304,9 +1340,13 @@ $(document).ready(function() {
 				// console.log("updateNowPlaying: ", songObj);
 				if(lastRoomUrl === window.location.href) {
                     $.each(TFMEX.votelog, function() {
+                        var layers = {};
                         // Reset turned away down voters
-                        if(this[1] == "down") {
-                            TFMEX.turnToward(TFMEX.roommanager.listeners[this[0]].layers);
+                        if(TFMEX.roommanager.listeners[this[0]] && TFMEX.roommanager.listeners[this[0]].layers) {
+                            layers = TFMEX.roommanager.listeners[this[0]].layers;
+                            if(this[1] == "down") {
+                                TFMEX.turnToward(layers);
+                            }
                         }
                     });
                 }

@@ -66,6 +66,11 @@
 .tt-ext-room-user.tt-ext-room-mod {background-color:#ffa !important;}
 .tt-ext-room-users a {color:#2E9AEB; padding:5px;text-align:right;}
 .tt-ext-room-users .tt-ext-user-name {font-size:16px;text-align:left;}
+.tt-ext-room-users .tt-ext-user-name .vote { display: inline-block; width: 7px; margin: 2px 2px 2px 0; height: 7px; }
+.tt-ext-room-users .tt-ext-user-name .upVote { background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGRJREFUeNpi+P//PwMMB28VWoHMZ2KAgpBtwh5AKhxKgwFcEghK0WgGRpD2kC3CBkD2eSSFhmt83l6A6PzEUAHEDEi4AqzTa4aQHJC+B8TMSDr/ArESy/fvf0rRJBig/FKAAAMAtZcsW2vhW80AAAAASUVORK5CYII='); }
+.tt-ext-room-users .tt-ext-user-name .downVote { background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGhJREFUeNpi7Ofj62VgYChiwAR9jNOEhOSAjHtAzIwk8ReIlZgy3759xM3AsAyIGZDwMpA4E0gZD9AIHggNw30gcbBk0Nu3FzgYGHYDMQOIBvHhkjAHoNEMDP///4fjrUJC85H5AAEGAGotKkh7wqtJAAAAAElFTkSuQmCC'); }
+.tt-ext-room-users .tt-ext-aux-links a.fan { display: inline-block; padding: 0; width: 10px; height: 10px; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAMlJREFUeNpiYEADM7v45IBYF12cBV1AXZl5IScHIz+QacSAC8zp5bP+/Uj8798n4v/m9/P5Issxgqzi4Wb0EOBjtNZQYfFSkmcWAUk8evr3/ZUbf7a///j/2MdP/3Yybl0ssNDLmT2OAQ/YfejXJjBj1wrBjf+fif/Hhg+sFdyPouvSXuF76IpuHxN5DpNngjOYEGy4B5Dk4cEjKswk/O8fw/9T53+f+/uP4be5IauZmAiTIIaD968R3IMc0FPbeFWgYlwgPkCAAQAv3V5muRFOpAAAAABJRU5ErkJggg=='); }
+.tt-ext-room-users .tt-ext-aux-links a.notFan { background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANZJREFUeNpiYEADra2tckCsiy7Ogi6gpKS0kIODgx/INGLABTo6Oqxv3779986dO/+6urp8keUYQVZxc3N78PHxWQNN85KTkxMBSTx79uz9rVu3tn/8+PHY58+fdzLOmzdvoYODQxwDHnDkyJFNjCDGokWLNtrY2PhhU3Ty5MkDkZGRjowwge3bt99TV1dXRFb08OHDF46OjpIgNhNMkAkI0E1jZGRkwggeISEh4X///v2/ePHiOSD928DAwExYWFgQwy3Lli3bgxzQTU1NKlAxLhAfIMAA4U1O5xoDqHoAAAAASUVORK5CYII='); }
 
 .tt-ext-welcome-message p {margin-top:15px}
 
