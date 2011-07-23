@@ -9,7 +9,6 @@
   "content_scripts": [
     {
       "matches": ["http://turntable.fm/*"],
-      "css": ["css/turntable.fm.extend.css"],
       "js": ["js/jquery.1.6.1.min.js", "js/contentscript.js", "js/injectScript.js"]
     }
   ],
