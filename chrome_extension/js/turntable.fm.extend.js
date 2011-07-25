@@ -330,15 +330,15 @@ TFMEX.roomUserView = function(user) {
 	if(userIsOnDeckPosition > -1) {
 	    userNameSpan.push("(DJ)");
 	}
-	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank"},"on TTDashboard"]];
+	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a.icon.ttDashboard",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",title:'on TTDashboard'},""]];
 	if(!userIsSelf) {
     	if(fanOf) {
-    	    auxSpan.push(["a.fan.evtToggleFan",{title:"Unfan",'data-userid':user.userid,href:"javascript:"},""]);
+    	    auxSpan.push(["a.icon.fan.evtToggleFan",{title:"Unfan",'data-userid':user.userid,href:"javascript:"},""]);
     	} else {
-        	auxSpan.push(["a.fan.notFan.evtToggleFan",{title:"Become a Fan",'data-userid':user.userid,href:"javascript:"},""]);
+        	auxSpan.push(["a.icon.fan.notFan.evtToggleFan",{title:"Become a Fan",'data-userid':user.userid,href:"javascript:"},""]);
     	}
     	if(TFMEX.roomInfo.isMod(TFMEX.roomInfo.selfId)) {
-        	auxSpan.push(["a.evtBootUser.bootUser",{'data-userid':user.userid,href:"javascript:"},"Boot"]);
+        	auxSpan.push(["a.icon.evtBootUser.bootUser",{'data-userid':user.userid,href:"javascript:",title:'Boot User'},""]);
     	}
 	}
 	returnObj.push(userNameSpan);
@@ -360,6 +360,9 @@ TFMEX.roomUserView = function(user) {
 TFMEX.bootUser = function(element) {
     var $element = $(element);
     TFMEX.roommanager.callback('boot_user', $element.data("userid"));
+    $element.closest('.tt-ext-room-user').hide('slow', function(evt) {
+        $(evt.target).remove();
+    });
 }
 
 TFMEX.toggleFan = function(element) {
@@ -1339,6 +1342,7 @@ $(document).ready(function() {
 				songToMatch.metadata = songObj;
 				// console.log("updateNowPlaying: ", songObj);
 				if(lastRoomUrl === window.location.href) {
+				    /*
                     $.each(TFMEX.votelog, function() {
                         var layers = {};
                         // Reset turned away down voters
@@ -1349,6 +1353,7 @@ $(document).ready(function() {
                             }
                         }
                     });
+                    */
                 }
 		        TFMEX.votelog = [];
 
@@ -1500,7 +1505,6 @@ $(document).ready(function() {
                             TFMEX.votelog.push(this);
                         });
 	                    currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
-	                    currentUserLayers = TFMEX.roommanager.listeners[currentVote[0]].layers;
 						if(currentVote[0] === TFMEX.roommanager.myuserid) {
 							if(currentVote[1] == "down") {
 								$("body").attr("data-cancel-scrobble", true);
@@ -1508,6 +1512,8 @@ $(document).ready(function() {
 								$("body").attr("data-cancel-scrobble", false);
 							}
 						}
+						/*
+	                    currentUserLayers = TFMEX.roommanager.listeners[currentVote[0]].layers;
 						if(currentVote[1] == "down") {
 						    if(currentUserLayers) {
 						        TFMEX.turnAway(currentUserLayers);
@@ -1517,6 +1523,7 @@ $(document).ready(function() {
 						} else {
 						    TFMEX.turnToward(currentUserLayers);
 						}
+						*/
 	                    try {
 	                        if(TFMEX.prefs.showVote) {
 	                            desktopAlert({
