@@ -282,7 +282,7 @@ function getSimilarSongsFromLastFM(songMetadata,songLimit) {
 		var songsByOtherArtists = [];
 		if (data.error == null && $.type(data.similartracks.track) !== "string") { //sometimes last.fm returns weird data.
 			$.each(data.similartracks.track, function(index, trackInfo) {
-				if (trackInfo.artist.name != songMetadata.artist) {
+				if (trackInfo.artist.name.toLowerCase() != songMetadata.artist.toLowerCase()) {
 					songsByOtherArtists.push(trackInfo);
 				}
 			});
