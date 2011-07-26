@@ -9,4 +9,11 @@
     css.type = "text/css";
     css.href=chrome.extension.getURL("css/turntable.fm.extend.css?v=0.6_" + new Date().getTime());
     document.body.appendChild(css);
+
+	var themeCSS = document.createElement('link');
+	themeCSS.rel = "stylesheet";
+	themeCSS.type = "text/css";
+	themeCSS.href=chrome.extension.getURL("css/tt-ext-ui-theme/jquery-ui-1.8.14.custom.css?v=0.6_" + new Date().getTime());
+	document.body.appendChild(themeCSS);
+
 })();

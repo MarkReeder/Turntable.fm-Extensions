@@ -59,9 +59,9 @@ TFMEX.notificationQueue = [];
 TFMEX.songTags = {};
 TFMEX.tagSongs = {};
 
-TFMEX.suggestionsOverlayView = function(source) {
+TFMEX.suggestionsOverlayView = function() {
 	return [
-		"div.modal.suggestionsOverlay",
+		"div.modal.suggestionsOverlay.tt-ext-ui",
 		{
 			style: {
 				width:"590px",
@@ -84,10 +84,17 @@ TFMEX.suggestionsOverlayView = function(source) {
 		],
 		[
 			"p",
-			source
+			"Similar to..."
 		],
 		[
-			"div##songs.tt-ext-suggested-songs"					
+			"div#tt-ext-suggestion-tabs",
+			[ "ul",["li",["a",{href:"#tt-ext-suggestion-tabs-0"},"...the current track"]],["li",["a",{href:"#tt-ext-suggestion-tabs-1"},"...this room's most popular tracks"]]],
+			[
+				"div#tt-ext-suggestion-tabs-0##similarToCurrentSong.tt-ext-suggested-songs"
+			],
+			[
+				"div#tt-ext-suggestion-tabs-1##similarToSongLog.tt-ext-suggested-songs"
+			]
 		]
 	]
 }
@@ -673,23 +680,46 @@ $(document).ready(function() {
 				var allSimilarSongs = JSON.parse($('body').attr('tt-ext-similar-songs'))
 				var similarToCurrentSong = allSimilarSongs.similarToCurrentSong
 				var similarToSongLog = allSimilarSongs.similarToSongLog
-				var arrayToUse = similarToSongLog, source = "based on this room's most popular tracks"
-				if (!similarToSongLog || similarToSongLog.length == 0) {
-					arrayToUse = similarToCurrentSong;
-					source = "based on the current song"
-				}
-				if (arrayToUse.length > 0) {
+//				var arrayToUse = similarToSongLog, source = "based on this room's most popular tracks"
+//				if (!similarToSongLog || similarToSongLog.length == 0) {
+//					arrayToUse = similarToCurrentSong;
+//					source = "based on the current song"
+//				}
+				if (similarToSongLog.length > 0 || similarToCurrentSong.length > 0) {
 					var containers = {}
-					var suggestionsMarkup = util.buildTree(TFMEX.suggestionsOverlayView(source),containers)
-					var songContainer = containers.songs
+					var suggestionsMarkup = util.buildTree(TFMEX.suggestionsOverlayView(),containers)
 
-					$.each(arrayToUse,function(index, song) {
-						var tree = TFMEX.suggestedSongView(song)
-						var songMarkup = util.buildTree(tree)
-						$(songContainer).append(songMarkup)
-					})
+					var arraysToUse = [{containerName: "similarToCurrentSong",contents: similarToCurrentSong},
+									   {containerName: "similarToSongLog",contents: similarToSongLog}]
 
+					$.each(arraysToUse,function() {
+						var songContainer = containers[this.containerName];
+						$.each(this.contents,function() {
+							var tree = TFMEX.suggestedSongView(this)
+							var songMarkup = util.buildTree(tree)
+							$(songContainer).append(songMarkup)
+						});
+					});
+
+					var tabOptions = { disabled: [] }
+					//TODO: This order is specific, and is too tightly bound to the TFMEX.suggestionsOverlayView() function.
+					$.each([similarToCurrentSong,similarToSongLog], function(i) {
+						if (this.length == 0) tabOptions.disabled.push(i)
+					});
+
+					//we select the tab with the largest number of entries so that the layout is correct.
+					var indexOfLongestTab = similarToCurrentSong.length >= similarToSongLog.length ? 0 : 1
+					tabOptions.selected = indexOfLongestTab
+					var $tabs = $(suggestionsMarkup).find("#tt-ext-suggestion-tabs").tabs(tabOptions)
+
+					//then show the overlay, which does the layout calculations
 					turntable.showOverlay(suggestionsMarkup)
+
+					//then we flip back to the first tab, unless its disabled.
+					var firstTabDisabled = tabOptions.disabled.indexOf(0) != -1
+					if (!firstTabDisabled) {
+						$tabs.tabs("select",0)
+					}
 				}
 			});
 			$('.tt-ext-suggested-song .tt-ext-search-link').live('click', function(evt) {
