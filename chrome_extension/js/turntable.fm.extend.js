@@ -11,6 +11,8 @@ TFMEX = {};
 TFMEX.$body = $("body");
 TFMEX.prefs = {
     "showChat": false,
+    "filteredChat": false,
+    "chatFilters": [],
     "showSong": true,
     "showVote": true,
     "showDJChanges": false,
@@ -350,17 +352,6 @@ TFMEX.roomUserView = function(user) {
 	}
 	returnObj.push(userNameSpan);
     returnObj.push(auxSpan);
-	/* Insert upvote messages next to user names
-	for (var i in TFMEX.roomInfo.upvoters) {
-		if(TFMEX.roomInfo.upvoters[i] === user.userid) {
-			userVoteText = " voted: Awesome";
-		}
-    }
-	if(userVoteText !== "") {
-		userVote = ["span",{},userVoteText];
-		returnObj.push(userVote);
-	}
-	*/
 	return returnObj;
 }
 
@@ -1450,7 +1441,8 @@ $(document).ready(function() {
 
 	        var songMetadata = null,
 	            currentDJ = "",
-	            currentDJName = "";
+	            currentDJName = "",
+	            showChat = true;
 
 
 
@@ -1481,7 +1473,18 @@ $(document).ready(function() {
                         }
 	                    break;
 	                case "speak":
-	                    if(TFMEX.prefs.showChat) {
+	                    if(TFMEX.prefs.filteredChat) {
+	                        if(TFMEX.prefs.chatFilters.length) {
+    	                        showChat = false;
+    	                        $.each(TFMEX.prefs.chatFilters, function() {
+    	                            if(m.text.indexOf(this) > -1)  {
+                                       showChat = true;
+                                       return false;
+                                    }
+    	                        });
+	                        }
+	                    }
+	                    if(TFMEX.prefs.showChat && showChat) {
 	                        desktopAlert({
 	                            title: "",
 	                            image: "",
