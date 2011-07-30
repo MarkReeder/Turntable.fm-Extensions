@@ -60,6 +60,7 @@ TFMEX.votelog = [];
 TFMEX.notificationQueue = [];
 TFMEX.songTags = {};
 TFMEX.tagSongs = {};
+TFMEX.lastUserAction = {};
 
 TFMEX.suggestionsOverlayView = function() {
 	return [
@@ -312,12 +313,19 @@ TFMEX.roomUserView = function(user) {
 	    fanOf = user.fanof,
 	    divTag = "div.tt-ext-room-user",
 	    userNameSpan = [],
-	    auxSpan = [];
-	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod"
+	    auxSpan = [],
+	    memberSince = "Member since: ",
+	    now = new Date(),
+	    newDate = new Date();
+	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod";    
+	if (userIsSuper) divTag += ".tt-ext-super-user";
 	returnObj = [
 		divTag
 	];
-	userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')"},user.name]];
+    newDate.setTime( user.created * 1000 );
+    dateString = newDate.toDateString();
+    memberSince += dateString;
+	userNameSpan = ["span.tt-ext-user-name.tt-ext-cell",["a",{href:"javascript:TFMEX.showUserProfile('" + user.userid + "')",title:memberSince},user.name]];
 	
 	if(TFMEX.userVotes[user.userid]) {
 	    if(TFMEX.userVotes[user.userid] === "up") {
@@ -335,9 +343,15 @@ TFMEX.roomUserView = function(user) {
 	if(userIsSuper) {
 	    userNameSpan.push("(Super)");
 	}
-	
+	var secondsToHms = function(d) {
+    	d = Number(d);
+    	var h = Math.floor(d / 3600);
+    	var m = Math.floor(d % 3600 / 60);
+    	var s = Math.floor(d % 3600 % 60);
+    	return ((h > 0 ? h + ":" : "") + (m > 0 ? (h > 0 && m < 10 ? "0" : "") + m + ":" : "0:") + (s < 10 ? "0" : "") + s);
+    };
 	if(userIsOnDeckPosition > -1) {
-	    userNameSpan.push("(DJ)");
+	    userNameSpan.push("(DJ - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0)) + ")");
 	}
 	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a.icon.ttDashboard",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",title:'on TTDashboard'},""]];
 	if(!userIsSelf) {
@@ -608,7 +622,7 @@ $(document).ready(function() {
 	    return dfd.promise();
 	}
 	var whenTurntableObjectsReady = function(fromRoomChange) {
-		
+		var now = new Date();
 		/*
 		console.log("success!");
 		console.log(TFMEX.roomInfo);
@@ -732,7 +746,12 @@ $(document).ready(function() {
    			   TFMEX.bootUser($(evt.target)) ;
    			});
 		}
-
+		
+		TFMEX.lastUserAction = {};
+        $.each(TFMEX.roomInfo.users, function(userId, value) {
+            TFMEX.lastUserAction[userId] = now;
+        });
+        
 		$("*").undelegate(".TFMEX")
 		
 		$("#tfmExtended .tag-list").delegate(".tag-inactive", "click.TFMEX", function() {
@@ -1442,7 +1461,8 @@ $(document).ready(function() {
 	        var songMetadata = null,
 	            currentDJ = "",
 	            currentDJName = "",
-	            showChat = true;
+	            showChat = true,
+	            now = new Date();
 
 
 
@@ -1473,6 +1493,7 @@ $(document).ready(function() {
                         }
 	                    break;
 	                case "speak":
+                        TFMEX.lastUserAction[TFMEX.roomInfo.userIdFromName(m.name)] = now;
 	                    if(TFMEX.prefs.filteredChat) {
 	                        if(TFMEX.prefs.chatFilters.length) {
     	                        showChat = false;
@@ -1513,6 +1534,7 @@ $(document).ready(function() {
 	                case "rem_dj":
 	                    if(TFMEX.prefs.showDJChanges) {
 	                        // console.log("showDJChanges", m);
+                            TFMEX.lastUserAction[m.user[0].id] = now;
 	                        desktopAlert({
 	                            title: m.user[0].name + " " + djChangeMap[m.command] + " the decks.",
 	                            image: "",
@@ -1538,6 +1560,7 @@ $(document).ready(function() {
                             TFMEX.votelog.push(this);
                         });
 	                    currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
+                        TFMEX.lastUserAction[currentVote[0]] = now;
 						if(currentVote[0] === TFMEX.roommanager.myuserid) {
 							if(currentVote[1] == "down") {
 								$("body").attr("data-cancel-scrobble", true);

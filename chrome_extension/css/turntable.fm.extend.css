@@ -69,6 +69,7 @@
 .tt-ext-room-user {padding:5px 0px;display:table-row;;font-size:13px;}
 .tt-ext-room-user .tt-ext-cell {display:table-cell}
 .tt-ext-room-user.tt-ext-room-mod {background-color:#ffa !important;}
+.tt-ext-room-user.tt-ext-super-user {background-color:#cfc !important;}
 .tt-ext-room-users a {color:#2E9AEB; padding:5px;text-align:right;}
 .tt-ext-room-users .tt-ext-user-name {font-size:16px;text-align:left;}
 .tt-ext-room-users .tt-ext-user-name .vote { display: inline-block; width: 7px; margin: 2px 2px 2px 0; height: 7px; }
