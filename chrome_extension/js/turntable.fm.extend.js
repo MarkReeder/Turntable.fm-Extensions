@@ -316,7 +316,8 @@ TFMEX.roomUserView = function(user) {
 	    auxSpan = [],
 	    memberSince = "Member since: ",
 	    now = new Date(),
-	    newDate = new Date();
+	    newDate = new Date(),
+	    idleMessage = "";
 	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod";    
 	if (userIsSuper) divTag += ".tt-ext-super-user";
 	returnObj = [
@@ -350,8 +351,11 @@ TFMEX.roomUserView = function(user) {
     	var s = Math.floor(d % 3600 % 60);
     	return ((h > 0 ? h + ":" : "") + (m > 0 ? (h > 0 && m < 10 ? "0" : "") + m + ":" : "0:") + (s < 10 ? "0" : "") + s);
     };
+    try {
+        idleMessage = " - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0));
+    } catch(e) { console.log(e.message) }
 	if(userIsOnDeckPosition > -1) {
-	    userNameSpan.push("(DJ - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0)) + ")");
+	    userNameSpan.push("(DJ" + idleMessage +")");
 	}
 	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a.icon.ttDashboard",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",title:'on TTDashboard'},""]];
 	if(!userIsSelf) {
@@ -1517,6 +1521,7 @@ $(document).ready(function() {
 	                case "registered":
 	                    for (var userIndex in m.user){
 	                        var user = m.user[userIndex];
+	                        TFMEX.lastUserAction[user.userid] = now;
 	                    }
 	                    break;
 	                case "deregistered":
