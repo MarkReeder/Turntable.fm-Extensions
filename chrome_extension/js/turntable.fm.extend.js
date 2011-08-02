@@ -1407,7 +1407,7 @@ $(document).ready(function() {
 		    			// console.log("About to show song: ", songObj);
 		    			setTimeout(function() {
 		    				// console.log("Show Song: ", songMetadata);
-		    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is spinning:",
+		    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is playing:",
 		                        coverArt = songObj.coverart?songObj.coverart:"",
 		                        body = songObj.artist + " - " + songObj.song;
 		                    desktopAlert({
@@ -1417,6 +1417,18 @@ $(document).ready(function() {
 		                        timeout: TFMEX.prefs.messageTimeout
 		                    });
 		    			}, 500);
+                        setTimeout(function() {
+		    				// console.log("Show Song: ", songMetadata);
+		    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is almost done playing:",
+		                        coverArt = songObj.coverart?songObj.coverart:"",
+		                        body = songObj.artist + " - " + songObj.song;
+		                    desktopAlert({
+		                        title: title,
+		                        image: coverArt,
+		                        body: body,
+		                        timeout: TFMEX.prefs.messageTimeout
+		                    });
+		    			}, songObj.length * 1000 * .85);//length is in seconds, need to get to miliseconds
 		            } else {
 		    			// console.log("Not displaying song change notification: ", TFMEX.prefs);
 		    		}
