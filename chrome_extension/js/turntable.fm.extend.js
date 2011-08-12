@@ -61,6 +61,7 @@ TFMEX.notificationQueue = [];
 TFMEX.songTags = {};
 TFMEX.tagSongs = {};
 TFMEX.lastUserAction = {};
+TFMEX.djSongCount = {};
 
 TFMEX.suggestionsOverlayView = function() {
 	return [
@@ -317,7 +318,9 @@ TFMEX.roomUserView = function(user) {
 	    memberSince = "Member since: ",
 	    now = new Date(),
 	    newDate = new Date(),
-	    idleMessage = "";
+	    idleMessage = "",
+	    songCountMessage = "",
+	    playCount = 0;
 	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod";    
 	if (userIsSuper) divTag += ".tt-ext-super-user";
 	returnObj = [
@@ -351,11 +354,17 @@ TFMEX.roomUserView = function(user) {
     	var s = Math.floor(d % 3600 % 60);
     	return ((h > 0 ? h + ":" : "") + (m > 0 ? (h > 0 && m < 10 ? "0" : "") + m + ":" : "0:") + (s < 10 ? "0" : "") + s);
     };
-    try {
-        idleMessage = " - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0));
-    } catch(e) { console.log(e.message) }
 	if(userIsOnDeckPosition > -1) {
-	    userNameSpan.push("(DJ" + idleMessage +")");
+        try {
+            idleMessage = " - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0));
+        } catch(e) { console.log(e.message) }
+        try {
+            if(TFMEX.djSongCount[user.userid]) {
+                playCount = TFMEX.djSongCount[user.userid];
+            }
+            songCountMessage = " - played " + playCount;
+        } catch(e) { console.log(e.message) }
+	    userNameSpan.push("(DJ" + songCountMessage + idleMessage +")");
 	}
 	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a.icon.ttDashboard",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",title:'on TTDashboard'},""]];
 	if(!userIsSelf) {
@@ -886,6 +895,16 @@ $(document).ready(function() {
 			$('#new-song-tag-value').focus();
 		});
 
+		$('body').delegate('.queue', 'click.TFMEX', function() {
+		    TFMEX.refreshTagSongs();
+			TFMEX.updateQueueTagIcons();
+		});
+		
+		$('#playlist').delegate('.remove', 'click.TFMEX', function() {
+		    TFMEX.refreshTagSongs();
+			TFMEX.updateQueueTagIcons();
+		});
+
 		$('#overlay').delegate('.new-song-tag', 'submit.TFMEX', function(evt) {
 			var $newSongTag = $('#new-song-tag-value'),
 				$newSongRow = $newSongTag.closest('div'),
@@ -1064,8 +1083,8 @@ $(document).ready(function() {
 		},
 		checkForChange = function() {
 			var tempSongMetadata = null,
-				i = 0,
-				$songTags = $('#tfmExtended .tags div');
+				i = 0;
+				// $songTags = $('#tfmExtended .tags div');
 			try {
 				lastSongMetadata = songMetadata;
 
@@ -1102,6 +1121,7 @@ $(document).ready(function() {
 					}
 					lastRoomUrl = window.location.href;
 				}
+				/*
 				$songTags.each(function() {
 					var $this = $(this);
 					TFMEX.songTags[$this.data('song')] = $this.data('tags');
@@ -1113,6 +1133,7 @@ $(document).ready(function() {
 					TFMEX.refreshTagSongs();
 				}
 				TFMEX.updateQueueTagIcons();
+				*/
 				if(!tagIconsAdded) {
 					TFMEX.updateQueueTagIcons();
 					tagIconsAdded = true;
@@ -1178,7 +1199,7 @@ $(document).ready(function() {
 			}
 		},
 		populateTagsColdStart = function() {
-			$('#tfmExtended .tag-list').html('Looks like you don\'t have any tags in your collection. Either <a id="getTagsFromLastFm" class="text-link">get tags from last.fm</a> or add tags manually by clicking on the tag icons in your queue.');
+			$('#tfmExtended .tag-list').html('Looks like you don\'t have any tags in your collection. Add tags by clicking on the tag icons in your queue.');
 		},
 		updatePrefs = function() {
 			// console.log("TFMEX.prefs", TFMEX.prefs);
@@ -1410,6 +1431,10 @@ $(document).ready(function() {
 		    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is spinning:",
 		                        coverArt = songObj.coverart?songObj.coverart:"",
 		                        body = songObj.artist + " - " + songObj.song;
+		                    if(typeof(TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid]) === "undefined") {
+		                        TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] = 0;
+		                    }
+		                    TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] += 1;
 		                    desktopAlert({
 		                        title: title,
 		                        image: coverArt,
@@ -1537,9 +1562,12 @@ $(document).ready(function() {
 	                    break;
 	                case "add_dj":
 	                case "rem_dj":
+                        TFMEX.lastUserAction[m.user[0].userid] = now;
+                        if(m.command === "add_dj") {
+	                        TFMEX.djSongCount[m.user[0].userid] = 0;
+                        }
 	                    if(TFMEX.prefs.showDJChanges) {
 	                        // console.log("showDJChanges", m);
-                            TFMEX.lastUserAction[m.user[0].id] = now;
 	                        desktopAlert({
 	                            title: m.user[0].name + " " + djChangeMap[m.command] + " the decks.",
 	                            image: "",
