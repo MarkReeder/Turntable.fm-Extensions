@@ -1424,6 +1424,12 @@ $(document).ready(function() {
 
 				try {
 		    		highlightMatchingTracks(songToMatch, $("#right-panel .songlist .song"));
+		    		setTimeout(function() {
+                        if(typeof(TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid]) === "undefined") {
+                            TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] = 0;
+                        }
+                        TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] += 1;
+		    		}, 500);
 		            if(TFMEX.prefs.showSong) {
 		    			// console.log("About to show song: ", songObj);
 		    			setTimeout(function() {
@@ -1431,10 +1437,6 @@ $(document).ready(function() {
 		    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is spinning:",
 		                        coverArt = songObj.coverart?songObj.coverart:"",
 		                        body = songObj.artist + " - " + songObj.song;
-		                    if(typeof(TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid]) === "undefined") {
-		                        TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] = 0;
-		                    }
-		                    TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] += 1;
 		                    desktopAlert({
 		                        title: title,
 		                        image: coverArt,
