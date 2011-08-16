@@ -32,6 +32,7 @@
 #autoKickUserPrefs label { left: 5px; position: relative; }
 #autoKickUserPrefs .marginfive { margin: 0 5px; }
 #autoKickUserPrefs a { font-size: 16px }
+#chatFiltersValue { float: left; margin-top: -10px; margin-bottom: 10px; width: 250px; }
 
 #right-panel .matchesRecentlyPlayedExactly { background-color: #faa; }
 #right-panel .matchesRecentlyPlayedArtist { background-color: #ffa; }

@@ -192,6 +192,15 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 					"dd",["input#showChat",{type:"checkbox","data-tfmex-pref":"showChat",value:1}]
 				],
 				[
+					"dt","Filter Chat?",["br"]
+				],
+				[
+					"dd",["input#chatFilters",{type:"checkbox","data-tfmex-pref":"filteredChat",value:1}]
+				],
+				[
+					"div",["input#chatFiltersValue",{type:"text","data-tfmex-pref":"chatFilters",value:""}]
+				],
+				[
 					"dt","Song Messages?"
 				],
 				[
@@ -1273,6 +1282,8 @@ $(document).ready(function() {
 	                    .prop('checked', TFMEX.prefs[prefName])
 	            }
 	        }
+	        
+	        $markup.find('#chatFiltersValue').val(TFMEX.prefs.chatFilters.join(","));
 			
 			if (TFMEX.prefs["enableScrobbling"]) {
 				$markup.find('#tt-ext-enable-scrobbling').prop("checked",true)
@@ -1283,7 +1294,8 @@ $(document).ready(function() {
 		savePrefs = function() {
 			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
 			
-			var prefsToSave = ["showChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed"]
+			var prefsToSave = ["showChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed"],
+			    prefValsToSave = ["chatFilters"];
 			for (var i in prefsToSave) {
 				var prefName = prefsToSave[i]
 	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
@@ -1292,6 +1304,19 @@ $(document).ready(function() {
 					var val = chkBox.is(':checked')
 					//console.debug("Setting pref",prefName,"to",val)
 					TFMEX.prefs[prefName] = val;
+				}
+	        }    
+			for (var i in prefValsToSave) {
+				var prefVal = prefValsToSave[i];
+				//console.debug("prefVal:",prefVal);
+	            if (TFMEX.prefs.hasOwnProperty(prefVal)) {
+					var txtBox = $('input[data-tfmex-pref=' + prefVal + ']');
+					    val = "";
+					if(txtBox) {
+					    val = txtBox.val().split(",");
+					}
+					console.debug("Setting pref",prefVal,"to",val)
+					TFMEX.prefs[prefVal] = val;
 				}
 	        }
 		
@@ -1529,7 +1554,7 @@ $(document).ready(function() {
 	                        if(TFMEX.prefs.chatFilters.length) {
     	                        showChat = false;
     	                        $.each(TFMEX.prefs.chatFilters, function() {
-    	                            if(m.text.indexOf(this) > -1)  {
+    	                            if(m.text.toLowerCase().indexOf(this.toLowerCase()) > -1)  {
                                        showChat = true;
                                        return false;
                                     }
