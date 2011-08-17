@@ -195,7 +195,7 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 					"dt","Filter Chat?",["br"]
 				],
 				[
-					"dd",["input#chatFilters",{type:"checkbox","data-tfmex-pref":"filteredChat",value:1}]
+					"dd",["input#filteredChat",{type:"checkbox","data-tfmex-pref":"filteredChat",value:1}]
 				],
 				[
 					"div",["input#chatFiltersValue",{type:"text","data-tfmex-pref":"chatFilters",value:""}]
@@ -316,7 +316,7 @@ TFMEX.roomUserView = function(user) {
 		userVoteText = "",
 		returnObj = null,
 		userIsSelf = user.userid === TFMEX.roomInfo.selfId,
-	    userIsMod = user.userid === TFMEX.roomInfo.moderatorId,
+	    userIsMod = false,
 	    userIsCreator = user.userid === TFMEX.roomInfo.creatorId,
 	    userIsSuper = user.acl === 1,
 	    userIsOnDeckPosition = jQuery.inArray(user.userid, TFMEX.roomInfo.djIds),
@@ -330,6 +330,7 @@ TFMEX.roomUserView = function(user) {
 	    idleMessage = "",
 	    songCountMessage = "",
 	    playCount = 0;
+	userIsMod = jQuery.inArray(user.userid, TFMEX.roomInfo.moderators) > -1;
 	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod";    
 	if (userIsSuper) divTag += ".tt-ext-super-user";
 	returnObj = [
@@ -786,6 +787,8 @@ $(document).ready(function() {
 				taggedSongs = [],
 				numTaggedSongs = 0,
 				missingSongs = [];
+			
+			TFMEX.updateQueueTagIcons();
 			
 			if(tag === "___untagged___") {
 				songs = TFMEX.songsUntagged;
@@ -1311,12 +1314,15 @@ $(document).ready(function() {
 				//console.debug("prefVal:",prefVal);
 	            if (TFMEX.prefs.hasOwnProperty(prefVal)) {
 					var txtBox = $('input[data-tfmex-pref=' + prefVal + ']');
-					    val = "";
+					    filters = [];
 					if(txtBox) {
-					    val = txtBox.val().split(",");
+					    filters = txtBox.val().split(",");
+					    $.each(filters, function(index, value) {
+					        filters[index] = $.trim(value);
+					    });
 					}
-					console.debug("Setting pref",prefVal,"to",val)
-					TFMEX.prefs[prefVal] = val;
+					// console.debug("Setting pref",prefVal,"to",filters)
+					TFMEX.prefs[prefVal] = filters;
 				}
 	        }
 		
