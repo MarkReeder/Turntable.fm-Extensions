@@ -192,7 +192,7 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 					"dd",["input#showChat",{type:"checkbox","data-tfmex-pref":"showChat",value:1}]
 				],
 				[
-					"dt","Filter Chat?",["br"]
+					"dt","Filter Chat Messages?",["br"]
 				],
 				[
 					"dd",["input#filteredChat",{type:"checkbox","data-tfmex-pref":"filteredChat",value:1}]
@@ -1297,7 +1297,7 @@ $(document).ready(function() {
 		savePrefs = function() {
 			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
 			
-			var prefsToSave = ["showChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed"],
+			var prefsToSave = ["showChat","filteredChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed"],
 			    prefValsToSave = ["chatFilters"];
 			for (var i in prefsToSave) {
 				var prefName = prefsToSave[i]
