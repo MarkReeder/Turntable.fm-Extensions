@@ -1077,8 +1077,8 @@ $(document).ready(function() {
 			} catch(e) {console.error("Exception occured in getRoomInfo",e.stack)}
 		},
 		attachListeners = function() {
-			var numMessageListeners = 0,
-				numSoundstartListeners = 0;
+			var numMessageListeners = 0;
+				// numSoundstartListeners = 0;
 			// console.log("in attachListeners");
 			updatePrefs();
 	        var intervalID = window.setInterval(function() {
@@ -1092,17 +1092,21 @@ $(document).ready(function() {
 							numMessageListeners += 1;
 						}
 					}
+					/*
 					for(var eventListener in window.turntable.eventListeners.soundstart) {
 						if(window.turntable.eventListeners.soundstart[eventListener] && window.turntable.eventListeners.soundstart[eventListener].toString() !== undefined) {
 							numSoundstartListeners += 1;
 						}
 					}
+					*/
 					if(!numMessageListeners) {
 	                	window.turntable.addEventListener("message", extensionEventListener);
 					}
+					/*
 					if(!numSoundstartListeners) {
 	                	window.turntable.addEventListener("soundstart", extensionEventListener);
 					}
+					*/
 	                window.clearInterval(intervalID);
 					if (!TFMEX.checkForChangeIntervalID) {
 						TFMEX.checkForChangeIntervalID = setInterval(checkForChange,1000);
