@@ -57,11 +57,16 @@ TFMEX.performMigrations = function() {
 }
 
 TFMEX.votelog = [];
+TFMEX.heartlog = [];
 TFMEX.notificationQueue = [];
 TFMEX.songTags = {};
 TFMEX.tagSongs = {};
 TFMEX.lastUserAction = {};
 TFMEX.djSongCount = {};
+
+TFMEX.showOverlay = function (tree){
+	util.showOverlay(tree);
+}
 
 TFMEX.suggestionsOverlayView = function() {
 	return [
@@ -78,7 +83,7 @@ TFMEX.suggestionsOverlayView = function() {
 			"div.close-x",
 			{
 				event: {
-					click: turntable.hideOverlay
+					click: util.hideOverlay
 				}
 			} 
 		],
@@ -172,7 +177,7 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 			"div.close-x",
 			{
 				event: {
-					click: cancelEvent //turntable.hideOverlay
+					click: cancelEvent //util.hideOverlay
 				}
 			} 
 		],
@@ -256,7 +261,7 @@ TFMEX.exportView = function(cancelEvent) {
 			"div.close-x",
 			{
 				event: {
-					click: cancelEvent //turntable.hideOverlay
+					click: cancelEvent //util.hideOverlay
 				}
 			} 
 		],
@@ -303,7 +308,7 @@ TFMEX.roomUsersView = function() {
 			"div.close-x",
 			{
 				event: {
-					click: turntable.hideOverlay
+					click: util.hideOverlay
 				}
 			} 
 		],
@@ -354,6 +359,10 @@ TFMEX.roomUserView = function(user) {
 	    } else {
     	    userNameSpan.push(["span.vote.downVote"]);
 	    }
+	}
+
+	if(TFMEX.heartlog.indexOf(user.userid) > -1) {
+	    userNameSpan.push(["span.heart"]);
 	}
 
 	if (userIsCreator) {
@@ -478,11 +487,12 @@ TFMEX.updateQueueTagIcons = function() {
 	var $songsInQueue = $('#playlist .queueView .song')
 	if($songsInQueue.length && $songsInQueue.is(':visible')) {
 		$('#playlist .queueView .song').each(function() {
-			var fileId = turntable.playlist.files[i].fileId,
+			var fileId = null,
 				html = '',
 				$this = $(this),
 				currentTagIcon = $this.find('a.tag');
-			if(!$this.attr('data-file-id')) {
+			fileId = turntable.playlist.files[i].fileId;
+			if(!$this.attr('data-file-id') && fileId) {
 				$this.attr('data-file-id', fileId);
 			}
 			if(currentTagIcon) {
@@ -506,7 +516,7 @@ TFMEX.updateQueueTagIcons = function() {
 
 TFMEX.showUserProfile = function(userId) {
 	TFMEX.roommanager.callback('profile',userId);
-	turntable.hideOverlay();
+	util.hideOverlay();
 }
 
 TFMEX.tagsOverlayView = function(metadata) {
@@ -526,7 +536,7 @@ TFMEX.tagsOverlayView = function(metadata) {
 			"div.close-x",
 			{
 				event: {
-					click: turntable.hideOverlay
+					click: util.hideOverlay
 				}
 			} 
 		],
@@ -607,40 +617,46 @@ $(document).ready(function() {
 		TFMEX.roommanager = null;
 	    var dfd = $.Deferred(),
 			resolveWhenReady = function() {
-			// console.log("attempting to resolve");
-			// console.log(Object.keys(turntable).length, tKeysLength);
-			// console.dir(turntable);
+			if(window.location.pathname !== "/lobby") {
+				// console.log("attempting to resolve");
+				// console.log(Object.keys(turntable).length, tKeysLength);
+				// console.dir(turntable);
 
-			for(var o in turntable) {
-				if(turntable[o] !== null) {
-					for(var o2 in turntable[o]) {
-						if(turntable[o][o2] !== null) {
-							if(o2 == 'creatorId') {
-								// console.log("currentDj found in: ", o);
-								TFMEX.roomInfo = turntable[o];
-								break;
-							}
-							if(o2 == 'displayName') {
-								// console.log("displayName found in: ", o);
-								TFMEX.userInfo = turntable[o];
-								break;
-							}
-						}
-					}
-				}
-			}
-			
-			if(TFMEX.roomInfo && TFMEX.userInfo) {
-				for(o in TFMEX.roomInfo) {
-					if(TFMEX.roomInfo[o] !== null) {
-						for(o2 in TFMEX.roomInfo[o]) {
-							if(o2 == 'myuserid') {
-								TFMEX.roommanager = TFMEX.roomInfo[o]
+				for(var o in turntable) {
+					if(turntable[o] !== null) {
+						for(var o2 in turntable[o]) {
+							if(turntable[o][o2] !== null) {
+								if(o2 == 'creatorId') {
+									// console.log("currentDj found in: ", o);
+									TFMEX.roomInfo = turntable[o];
+									break;
+								}
+								if(o2 == 'displayName') {
+									// console.log("displayName found in: ", o);
+									TFMEX.userInfo = turntable[o];
+									break;
+								}
 							}
 						}
 					}
 				}
-				dfd.resolve();
+
+				if(TFMEX.roomInfo && TFMEX.userInfo) {
+					for(o in TFMEX.roomInfo) {
+						if(TFMEX.roomInfo[o] !== null) {
+							for(o2 in TFMEX.roomInfo[o]) {
+								if(o2 == 'myuserid') {
+									TFMEX.roommanager = TFMEX.roomInfo[o]
+								}
+							}
+						}
+					}
+					dfd.resolve();
+				} else {
+					setTimeout(function(){
+						resolveWhenReady();
+					}, 250);
+				}
 			} else {
 				setTimeout(function(){
 					resolveWhenReady();
@@ -758,7 +774,7 @@ $(document).ready(function() {
 					var $tabs = $(suggestionsMarkup).find("#tt-ext-suggestion-tabs").tabs(tabOptions)
 
 					//then show the overlay, which does the layout calculations
-					turntable.showOverlay(suggestionsMarkup)
+					TFMEX.showOverlay(suggestionsMarkup)
 
 					//then we flip back to the first tab, unless its disabled.
 					var firstTabDisabled = tabOptions.disabled.indexOf(0) != -1
@@ -775,7 +791,7 @@ $(document).ready(function() {
 					else {
 						$searchBox.val($(evt.target).data('query'))
 						$('form.input.songSearch').trigger('submit')
-						turntable.hideOverlay()
+						util.hideOverlay()
 					}
 
 			});
@@ -786,6 +802,7 @@ $(document).ready(function() {
    			   TFMEX.bootUser($(evt.target)) ;
    			});
 		}
+
 		
 		TFMEX.lastUserAction = {};
         $.each(TFMEX.roomInfo.users, function(userId, value) {
@@ -920,7 +937,7 @@ $(document).ready(function() {
 			
 			$(tagsContainer).append(util.buildTree(TFMEX.tagAdd(fileId)));
 
-			turntable.showOverlay(markup);
+			TFMEX.showOverlay(markup);
 			$('#new-song-tag-value').focus();
 		});
 
@@ -1011,18 +1028,20 @@ $(document).ready(function() {
 					return alphaNumericText;
 				}
 			}
-			for(j in turntable.playlist.files) {
-				playlistSong = turntable.playlist.files[j];
-				if(songToMatch._id === playlistSong.fileId ||
-					(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)
-					 && normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song))) {
-					$($songQueue[j]).addClass("matchesRecentlyPlayedExactly");
-				} else if(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)) {
-					$($songQueue[j]).addClass("matchesRecentlyPlayedArtist");
-				} else if(normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song)) {
-					$($songQueue[j]).addClass("matchesRecentlyPlayedSongTitle");
+			try {
+				for(j in turntable.playlist.files) {
+					playlistSong = turntable.playlist.files[j];
+					if(songToMatch._id === playlistSong.fileId ||
+						(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)
+						 && normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song))) {
+						$($songQueue[j]).addClass("matchesRecentlyPlayedExactly");
+					} else if(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)) {
+						$($songQueue[j]).addClass("matchesRecentlyPlayedArtist");
+					} else if(normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song)) {
+						$($songQueue[j]).addClass("matchesRecentlyPlayedSongTitle");
+					}
 				}
-			}
+			} catch(e) { console.error("error highlighting tracks", e.stack); }
 		},
 		getSongTagsFromLastFm = function() {
 			var i = 0,
@@ -1079,12 +1098,12 @@ $(document).ready(function() {
 		attachListeners = function() {
 			var numMessageListeners = 0;
 				// numSoundstartListeners = 0;
-			// console.log("in attachListeners");
+			console.error("in attachListeners");
 			updatePrefs();
 	        var intervalID = window.setInterval(function() {
 				// console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
 	            if(window.turntable.eventListeners.message.length) {
-					// console.log("attaching listeners");
+					console.log("attaching listeners");
 					getRoomInfo();
 					
 					for(var eventListener in window.turntable.eventListeners.message) {
@@ -1180,7 +1199,7 @@ $(document).ready(function() {
 			}
 		},
 		refreshTagSongs = function() {
-			var songId, i, j, tag, sortedTags = [], activeTag = "";
+			var songId, i, j, tag, sortedTags = [], activeTag = "", tags = [];
 			TFMEX.tagSongs = {};
 			// console.log("TFMEX.songTags", TFMEX.songTags);
 			for(songId in TFMEX.songTags) {
@@ -1287,15 +1306,15 @@ $(document).ready(function() {
 				$usersContainer.append(userMarkup)
 			})
 			
-			turntable.showOverlay(markup)
+			TFMEX.showOverlay(markup)
 		}
 		showExport = function() {
-            var markup = util.buildTree(TFMEX.exportView(turntable.hideOverlay));
+            var markup = util.buildTree(TFMEX.exportView(util.hideOverlay));
 
-            turntable.showOverlay(markup)
+            TFMEX.showOverlay(markup)
 		},
 		showPrefs = function() {
-			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,savePrefs))
+			var markup = util.buildTree(TFMEX.preferencesView(util.hideOverlay,savePrefs))
 			var $markup = $(markup)
 			
 			updatePrefs();
@@ -1313,7 +1332,7 @@ $(document).ready(function() {
 				$markup.find('#tt-ext-enable-scrobbling').prop("checked",true)
 			}
 			
-			turntable.showOverlay(markup)
+			TFMEX.showOverlay(markup)
 		},
 		savePrefs = function() {
 			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
@@ -1348,7 +1367,7 @@ $(document).ready(function() {
 	        }
 		
 			var enableScrobbling = $('#tt-ext-enable-scrobbling').prop('checked')			
-			turntable.hideOverlay()
+			util.hideOverlay()
 						
 			if (!oldEnableScrobblingValue && enableScrobbling) {
 				turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
@@ -1473,6 +1492,7 @@ $(document).ready(function() {
                     */
                 }
 		        TFMEX.votelog = [];
+		        TFMEX.heartlog = [];
 
 				try {
 		    		highlightMatchingTracks(songToMatch, $("#right-panel .songlist .song"));
@@ -1629,6 +1649,10 @@ $(document).ready(function() {
 	                            timeout: TFMEX.prefs.messageTimeout
 	                        });
 	                    }
+	                    break;
+	                case "snagged":
+	                    console.log("snagged:", m);
+	                    TFMEX.heartlog.push(m.userid);
 	                    break;
 	                case "update_votes":
 	                    //update vote in song log
