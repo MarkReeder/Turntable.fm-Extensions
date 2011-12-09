@@ -116,7 +116,23 @@
 #playlist .song.firstInactive { display: block; height: 3px; background-color: red; }
 #playlist .song.firstInactive * { display: none; }
 
+#playlist .youtubeSample {
+    width: 17px;
+    height: 20px;
+    margin-left: 28px;
+    position: absolute;
+    top: 11px;
+    cursor: pointer;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAUCAMAAABcfiZ7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAwBQTFRF+fz7+vn5jo2N7mll3TEm6jY22y4i7k9J+LCyuru6+/z96zEt5h4Uraur7Tku6enp5eTlhoSFkpGR3S0g6R0T6iUc72dj3CkclZOUZWNj3jYs6RMH7VpV4ykcOzg5/////v7+/f///P///v//YV9f/f393Nzc+szMcm9xdXN0/vz9+fz9yMXG2NjY6S80821w/Pz+9M7M9+jf6hUM6jQlxsbG/vz+6Z+e4N/g//z83dvcPj0++v//6k5R84KL7C0ixsbF+/366i0x+/v97FZV98DI6yQi3t7eQT0++ejs71BR/OTl9ZOQ2jQn5zQ4/f7+7Cwn721w8GBb7TQw+P//7mBg6j48/v/+SkZH6jMs6qGi8vLywcHB82pz8XR1eXd4jIuMY2Bh+N3lcnBxXVpZ6Tgx89DQ/Nva8p2g/Pz99uju9czU+v7/+///2icc7U9Q/f7983+E70c69dK/+/v76UM0fHx87UFF9YqFsbCx7DYu+s3NxsXG9pSR61JW7Do0HBcX+sjJ+8vM8GVi8WVs8Gxm4iwj7Fth9C8m86Kn9qWp+Kyu9PXz9fX15uTl9JKP6lVT7VNX8ZeT/Pv7kJCP9JaVqqmorq6u8aaw+K+wmJeX+MbKaGdo+cbFvL6+/PL097a37GxVVVVV6jI36zQxeXZ28HJuUE1OlJOT++Li+eLm9ru69Lm8972+R0VG7oWKT05O6mRq51tf7HJs8KCB9KWG8TMl842K8jsqx8fI8G918E428IZ+9I197EtR821r+83P5Dsw99PYkY6R9dfbdHR0WlhY9Uk/Xl1e6z027G1q9tDT8Xp170xN9szP9pui/Pz862lx7nR363h198/T7Ozt+v7+/Pr8ZmZm3yUY3SUd7XyC7mRg8fDw+9vdnZua8TUs9X6Azc3N7Cwd7EI86Tgu+vr6/Pz7+vv7oqKh7EA3+LKz7Gxs721u6igq+dbW6i0o70VF8oqF6jY53dzdsrKy7DQvSUdI7jYu7EpE7kxGu7u+9JSSe3l86VFUpKOkTjaSFAAAAXZJREFUeNoAaAGX/gAfH5cp3ZxcHx8fHx8fHyAfHwAgH3yu//eOOBAfD1sPjR8gIAAgHyAoHmMspxk6X3nFNR9PcAAlKh/fgPURKCmaZOmiCR8qNgAl0B9ASCZ2EsMYGZYknh/naQAACh/iWPSlAmASYQ3I+x9BkwBDdB+5HiaUsMYNJNg7CR/o1wAB5ldHqNUQ/WCMDRGoLR8BAQAA1lQ8H20jISEiIR8jbCsrAABmt4UDFhbcg1IcA8zykmiJMQCm5Af6BwvwUFP5pOqhtHMylQB/mB8fxD8VG9MicjNG47u1vQBZVqtJRBwFZbMhvMkVb0oOxwBZG3jO7pu6ipGfI6zza2pdiAD2FI/ULnte6z0KvyfSraBFuAB6DPzLQoIvCL4h8Z3tOd4+tgD4FEzCoydR634izYFxmXeE4AAODH1iBWdLi4cwwO9VqqnPNAB1HZDRhuzb/k6xr7IdyuHlwQBaGk0GGhPaBgRuFxcEF9kTNwIMAJ09ieQUOGFYAAAAAElFTkSuQmCC'); }
+    
+#playlist .youtubeSample.playing { background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAUCAMAAABcfiZ7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAACdQTFRF6igo1SgouyIi3ygo2ygo5Cgoyygo6Cgowigo0CgoviUlxygo////Su521wAAAA10Uk5T////////////////AD3oIoYAAABJSURBVHjatJA7DoBAEIVGXX+r9z+vvAqjttKQUFLnk/osBTf9WlZQKTOolAlUSgOVMoBK2UGlLKBSDlApG6iUDiplBPV+eAkwANVxC6HEEoOKAAAAAElFTkSuQmCC') }
+
 .tt-ext-song-tags {margin:0 auto; padding: 5px 5px; background-color:white;border-bottom:1px solid #E6E6E6;}
 .tt-ext-song-tags span { color:#333; text-align: left; text-shadow: none;}
 
 .text-link { color: #2E9AEB; cursor: pointer; }
+
+.playlist-container .youtubePreview .playSample { background-position: -10px 0; }
+.youtubePreview .playSample:hover { background-position: 0 0; }
+
+#tfmexYoutubePlayer { position: absolute; left: -990px; }

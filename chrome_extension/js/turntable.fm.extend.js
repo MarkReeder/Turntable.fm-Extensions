@@ -514,6 +514,100 @@ TFMEX.updateQueueTagIcons = function() {
 	}
 }
 
+TFMEX.youtubePlayer = {
+    initialize: function() {
+        var s = document.createElement('script');
+        s.type = 'text/javascript';
+        s.src = 'https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js';
+        $('head').append(s);
+        this.addYoutubePlayLinks();
+    },
+    
+    fadeRoomAudioOut: function() {
+        for (var d = 0; d < turntablePlayer.tracks.length; d++) {
+            turntablePlayer.fade(turntablePlayer.tracks[d].sound, 0);
+        }
+    },
+    
+    fadeRoomAudioIn: function() {
+        for (var a = 0; a < turntablePlayer.tracks.length; a++) {
+            turntablePlayer.fade(turntablePlayer.tracks[a].sound, turntablePlayer.calculatedBarsVolume());
+        }  
+    },
+    
+    addYoutubePlayLinks: function() {
+        $('#playlist .queueView .song').each(function() {
+    		var $this = $(this),
+    		    details = $this.find('.details')[0].innerHTML,
+    		    artist = details.slice(0,details.lastIndexOf('-') - 1),
+    		    title = $this.find('.titlediv')[0].innerHTML;
+    		if($this.hasClass('noPreview')) {
+    		    $this
+    		        .addClass('youtubePreview')
+    		        .find('.playSample')
+    		            .removeClass('playSample')
+    		            .addClass('youtubeSample')
+            		    .unbind('click')
+    		            .click(function(event) {
+    		                var searchString = artist + ' ' + title,
+    		                    $this = $(this);
+    		                event.preventDefault();
+    		                if($this.hasClass('playing')) {
+            		            $('.youtubeSample.playing').removeClass('playing');
+                                TFMEX.youtubePlayer.player.stopVideo();
+                                TFMEX.youtubePlayer.fadeRoomAudioIn();
+    		                } else {
+                		        $('.youtubeSample.playing').removeClass('playing');
+    		                    $this.addClass('playing');
+        		                $.getJSON('http://gdata.youtube.com/feeds/api/videos?callback=?', 
+        		                    {
+        		                        v: '2',
+        		                        alt: 'jsonc',
+        		                        q: searchString,
+        		                        'max-results': '1'
+        		                    },
+        		                    function(data) {
+        		                        if(data.data.items) {
+                                            var params = { allowScriptAccess: "always", bgcolor: "#000000" };
+                                            var atts = { id: "tfmexYoutubePlayer" };
+                                            if(TFMEX.youtubePlayer.player) {
+                                               TFMEX.youtubePlayer.player.cueVideoById(data.data.items[0].id);
+                                               TFMEX.youtubePlayer.fadeRoomAudioOut();
+                                               TFMEX.youtubePlayer.player.seekTo(data.data.items[0].duration / 4, true);
+                                               if(TFMEXyoutubePlayerSampleTimer) { clearTimeout(TFMEXyoutubePlayerSampleTimer); }
+                                               TFMEXyoutubePlayerSampleTimer = setTimeout(function() {
+                                                  $this.removeClass('playing');
+                                                  TFMEX.youtubePlayer.player.stopVideo();
+                                                  TFMEX.youtubePlayer.fadeRoomAudioIn();
+                                               }, 30000);
+                                            } else {
+                                               swfobject.embedSWF("http://www.youtube.com/v/" + data.data.items[0].id + "?border=0&amp;enablejsapi=1&amp;playerapiid=tfmexYoutubePlayer", "tfmex-ytplayer", "0", "0", "8", null, null, params, atts);
+                                               TFMEX.youtubePlayer.fadeRoomAudioOut();
+                                               TFMEX.youtubePlayer.player = document.getElementById('tfmexYoutubePlayer');
+                                               TFMEXyoutubePlayerStartTimer = setInterval(function() {
+                                                   try {
+                                                      TFMEX.youtubePlayer.player.seekTo(data.data.items[0].duration / 4, true);
+                                                      clearInterval(TFMEXyoutubePlayerStartTimer);
+                                                   } catch(e) { }
+                                                }, 250);
+                                                TFMEXyoutubePlayerSampleTimer = setTimeout(function() {
+                                                    $this.removeClass('playing');
+                                                    TFMEX.youtubePlayer.player.stopVideo();
+                                                    TFMEX.youtubePlayer.fadeRoomAudioIn();
+                                                }, 30000);
+                                            }
+        		                        } else {
+        		                            console.log('not found');
+        		                        }
+        		                    });
+        		            }
+    		            });
+    		    // console.log(artist + ' ' + title);
+    		}
+    	});
+    }
+}
+
 TFMEX.showUserProfile = function(userId) {
 	TFMEX.roommanager.callback('profile',userId);
 	util.hideOverlay();
@@ -683,7 +777,7 @@ $(document).ready(function() {
         if (!fromRoomChange) {
 			TFMEX.performMigrations()
 			$("#tfmExtended").remove();
-			TFMEX.$body.append('<div id="tfmExtended"><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><ul class="tag-list"></ul></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');
+			TFMEX.$body.append('<div id="tfmExtended"><div id="tfmex-ytplayer"></div><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><ul class="tag-list"></ul></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');
 
 			var customMenuItems = [
 				{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
@@ -1159,6 +1253,7 @@ $(document).ready(function() {
 							TFMEX.$body.attr("data-current-song-obj", JSON.stringify(songMetadata));
 							$('#tt-ext-suggestions-link').fadeOut(250)
 							updateNowPlaying(songMetadata);
+							TFMEX.youtubePlayer.initialize()
 							raiseNewSongEvent();
 						}
 					}
@@ -1651,7 +1746,6 @@ $(document).ready(function() {
 	                    }
 	                    break;
 	                case "snagged":
-	                    console.log("snagged:", m);
 	                    TFMEX.heartlog.push(m.userid);
 	                    break;
 	                case "update_votes":
