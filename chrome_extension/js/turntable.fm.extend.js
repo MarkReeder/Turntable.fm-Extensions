@@ -1692,7 +1692,7 @@ $(document).ready(function() {
 						}
 						*/
 	                    try {
-	                        if(TFMEX.prefs.showVote) {
+	                        if(TFMEX.prefs.showVote && TFMEX.roomInfo.users[currentVote[0]]) {
 	                            desktopAlert({
 	                                title: TFMEX.roomInfo.users[currentVote[0]].name + " voted: ",
 	                                image: "",
