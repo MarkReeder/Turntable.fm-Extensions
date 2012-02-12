@@ -21,6 +21,7 @@ TFMEX.prefs = {
 	"enableScrobbling":false,
     "messageTimeout": 10000
 };
+
 TFMEX.clearNotifications = function() {
 	// Should work but doesn't at the moment due to this bug: https://code.google.com/p/chromium/issues/detail?id=40262
 	var notifciation = null;
@@ -156,6 +157,87 @@ TFMEX.suggestedSongView = function(song) {
 			]
 		]
 	]	 
+}
+TFMEX.songkickEventView = function (event) {
+    return [
+        "div",
+        [
+            "a.title.songkick-event.flL.clB",
+            {href:event.uri,target:'songkick'},
+            event.displayName
+        ],
+        [
+            "span.date.flL.clB",
+            {},
+            'on: ' + event.start.date
+        ],
+        [
+            "span.city.flL.clB",
+            {},
+            'in: ',
+            [
+                "span",
+                {},
+                event.location.city
+            ]
+        ]
+    ];
+}
+
+TFMEX.ticketflyEventView = function (event) {
+    var eventLink = [
+        "a.title.ticketfly-event.flL.clB",
+        {href:event.ticketPurchaseUrl,target:'ticketfly','data-event-id':event.id},
+        event.name
+    ];
+    
+    if(event.eventStatusCode === "SOLD_OUT") {
+        eventLink = [
+            "div.flL.clB",
+            {},
+            [
+                "span.sold-out",
+                {},
+                'SOLD OUT'
+            ],
+            [
+                "span",
+                {},
+                event.name
+            ]
+        ];
+    }
+    if(!(event.eventStatusCode === "BUY" || event.eventStatusCode === "CUSTOM" || event.eventStatusCode === "SOLD_OUT")) { return []; }
+    return [
+        "div",
+        eventLink,
+        [
+            "span.date.flL.clB",
+            {},
+            'on: ' + event.startDate
+        ],
+        [
+            "span.venue.flL.clB",
+            {},
+            'at: ',
+            [
+                "a",
+                {href:event.venue.url,target:'ticketfly'},
+                event.venue.name + ', ' + event.venue.city
+            ]
+        ]
+    ];
+    /*
+	return $("#" + elementId).length > 0 ? null : [
+		"div#" + elementId + ".menuItem",
+		{
+			event: {
+				click: clickHandler
+			}
+		},
+		itemLabel
+	];
+	*/
 }
 
 TFMEX.settingsItemView = function (itemLabel,clickHandler,elementId) {	
@@ -473,7 +555,15 @@ TFMEX.tagAdd = function(fileId) {
 }
 
 TFMEX.metadataDisplay = function(song) {
-    var metadata = song.metadata;
+    var metadata = song.metadata,
+        displayLength = function(length) {
+            var mm = Math.floor(length/60),
+                ss = length%60;
+            if(ss < 10) {
+                ss = '0' + ss;
+            }
+            return mm + ':' + ss;
+        }
 	return [
 		"div.tt-ext-song-tag.tt-ext-new-song-tag",
 		{
@@ -541,7 +631,7 @@ TFMEX.metadataDisplay = function(song) {
 			[
     			"span#song-metadata-length-value.value",
     			{},
-    			metadata.length
+    			displayLength(metadata.length)
 			],
 			[
 			    "br"
@@ -794,10 +884,12 @@ $(document).ready(function() {
 	TFMEX.roomInfo = null;
 	TFMEX.userInfo = null;
 	TFMEX.roommanager = null;
+	TFMEX.geo = {};
 	var getTurntableObjects = function(){
 		TFMEX.roomInfo = null;
 		TFMEX.userInfo = null;
 		TFMEX.roommanager = null;
+//     	TFMEX.geo = {};
 	    var dfd = $.Deferred(),
 			resolveWhenReady = function() {
 			if(window.location.pathname !== "/lobby") {
@@ -850,6 +942,184 @@ $(document).ready(function() {
 
 	    return dfd.promise();
 	}
+	/*
+	var lyricsDisplay = function() {
+	    var TFMEX.roomInfo.currentSong.metadata.artist
+	    var time_elapsed = TFMEX.roomInfo.currentSong.metadata.length - TFMEX.roommanager.time_left;
+	}
+	lyricsDisplay();
+	*/
+	var locationFeatures = function() {
+	    if(TFMEX.geo.concertProvider === 'ticketfly') {
+    	    var js;
+            js = document.createElement('script');
+            js.src = "http://api-stage.ticketfly.com/v2/js/tfly-pur-shared.js";
+            document.body.appendChild(js);
+
+            js = document.createElement('script');
+            js.src = "http://api-stage.ticketfly.com/v2/js/tfly-pur-widget-client.js";
+            document.body.appendChild(js);
+    		$('#tfmExtended .ticketfly-event').live('click', function(evt) {
+    			evt.preventDefault();
+    			TFP.widget.show($(evt.target).data().eventId);
+    		});
+	    }
+        TFMEX.geo = {
+            concertProvider: 'songkick',
+            setUserLocation: function(position) {
+                TFMEX.geo.position = position;
+            },
+            findSongkickEvents: function(artistId) {
+                queryObj = {
+                    'apikey'    : TFMEX_KEYS.songkick
+                };
+                $.getJSON('http://api.songkick.com/api/3.0/artists/' + artistId + '/calendar.json?jsoncallback=?',
+                    queryObj,
+                    function(data) {
+	                    if(data.resultsPage.totalEntries) {
+	                        
+	                        $('#songboard').append('<a href="#" class="on-tour songkick"></a>');
+	                        $('#tfmExtended .event-container').removeClass('hidden');
+	                        // console.log('found events: ', data.events);
+	                        if(TFMEX.geo.position) {
+                    			data.resultsPage.results.event.sort(function(a,b) {
+                    				var aD=getDistance(a.location),bD=getDistance(b.location);
+                    				if(!isNaN(aD) && isNaN(bD)) { return -1; }
+                    				if(isNaN(aD) && !isNaN(bD)) { return 1; }
+                    			 	return aD==bD?(a.start.datetime==b.start.datetime?0:a.start.datetime<b.start.datetime?-1:1):aD<bD?-1:1;
+                    			});
+	                        }    
+	                        $.each(data.resultsPage.results.event, function(i, event) {
+                				var tree = TFMEX.songkickEventView(event);
+                				if (tree) {
+                					// console.log("Creating menu item",menuItem.name,"with tree",tree)
+                					$("#tfmExtended .event-container .events").append(util.buildTree(tree))
+                				}
+	                            // console.log('event', event);
+		                        // if(TFMEX.geo.position) { console.log(getDistance(event.venue)); }
+	                        });
+                        }
+                    }
+                );
+            },
+            findSongkickArtist: function(queryObj) {
+                if(!queryObj) {
+                    queryObj = {
+                        'query'     : TFMEX.roomInfo.currentSong.metadata.artist,
+                        'apikey'    : TFMEX_KEYS.songkick
+                    };
+                }    
+	            $('#songboard').find('.on-tour').remove();
+                $('#tfmExtended .event-container').addClass('hidden');
+                $("#tfmExtended .event-container .events").empty();
+                $.getJSON('http://api.songkick.com/api/3.0/search/artists.json?jsoncallback=?',
+                    queryObj,
+                    function(data) {
+	                    if(data.resultsPage.totalEntries) {
+	                        $.each(data.resultsPage.results.artist, function(i, artist) {
+	                            if(artist.onTourUntil) {
+        	                        $('#tfmExtended .event-container').removeClass('hidden');
+	                                TFMEX.geo.findSongkickEvents(artist.id);
+	                                return false;
+	                            }
+	                        });
+	                    }
+                    }
+                )
+            },
+            findSongkickArtistCanned: function() {
+                TFMEX.geo.findSongkickArtist({'query':'Pretty Lights','apikey':TFMEX_KEYS.songkick});
+            },
+            ticketflyWidgetIsInitialized: false,
+            initTicketflyWidget: function() {
+                if(!TFMEX.geo.ticketflyWidgetIsInitialized) {
+                    TFP.widget.init({
+                        //this is your apiKey you obtained in the first step
+                        apiKey:TFMEX_KEYS.ticketfly,
+                        //optional event handler, fired when the widget opens
+                        onWidgetOpening: function() {/* Handler code goes here*/},
+                        //optional event handler, fired when the widget closes.
+                        //A boolean parameter is passed that indicates whether a sale completed or not.
+                        onWidgetClosed: function(saleCompleted) {/* Handler code goes here*/},
+                    });
+                    TFMEX.geo.ticketflyWidgetIsInitialized = true;
+                }
+            },
+            findTicketflyEvents: function(queryObj) {
+                if(!queryObj) {
+                    queryObj = {
+	                    'orgId'         : 1,
+	                    'artistName'    : TFMEX.roomInfo.currentSong.metadata.artist,
+	                    'tflyTicketd'   : true
+	                };
+                }
+    		    $.getJSON('http://www.ticketfly.com/api/events/upcoming.json?callback=?',
+    		                queryObj,
+    		                function(data) {
+    		                    $('#songboard').find('.on-tour').remove();
+    		                    if(data.events.length) {
+    		                        TFMEX.geo.initTicketflyWidget();
+    		                        $('#songboard').append('<a href="#" class="on-tour"></a>');
+    		                        $('#tfmExtended .event-container').removeClass('hidden');
+    		                        // console.log('found events: ', data.events);
+    		                        if(TFMEX.geo.position) {
+                            			data.events.sort(function(a,b) {
+                            				var aD=getDistance(a.venue),bD=getDistance(b.venue);
+                            			 	return aD==bD?(a.startDate==b.startDate?0:a.startDate<b.startDate?-1:1):aD<bD?-1:1;
+                            			});
+    		                        }
+    		                        $("#tfmExtended .event-container .events").empty();
+    		                        $.each(data.events, function(i, event) {
+                        				var tree = TFMEX.ticketflyEventView(event);
+                        				if (tree) {
+                        					// console.log("Creating menu item",menuItem.name,"with tree",tree)
+                        					$("#tfmExtended .event-container .events").append(util.buildTree(tree))
+                        				}
+    		                            // console.log('event', event);
+        		                        // if(TFMEX.geo.position) { console.log(getDistance(event.venue)); }
+    		                        });
+    		                    } else {
+    		                        $('#tfmExtended .event-container').addClass('hidden');
+    		                        console.log('no events found');
+    		                    }
+    		                }
+    	        );
+    		},
+    		findTicketflyEventsCanned: function() {
+    		    // TFMEX.geo.findTicketflyEvents({'orgId':1, 'artistName':'Of Monsters And Men'});
+    		    TFMEX.geo.findTicketflyEvents({'orgId':1, 'artistName':'Gotye'});
+    		}
+        }
+		var geoSuccess = function(position) {
+    	        TFMEX.geo.setUserLocation(position);
+		    },
+		    geoError = function(error) {
+		        TFMEX.geo.position = false;
+		    },
+		    getDistance = function(venue) {
+		        var userCoords = TFMEX.geo.position.coords;
+		        var toRad = function(num) { return num * Math.PI / 180; };
+		        var lat1 = userCoords.latitude,
+		            lon1 = userCoords.longitude,
+		            lat2 = parseFloat(venue.lat),
+		            lon2 = parseFloat(venue.lng);
+                var R = 6371, // km
+                    kmToMi = 0.621371192,
+                    dLat = toRad(lat2-lat1),
+                    dLon = toRad(lon2-lon1);
+                var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+                        Math.sin(dLon/2) * Math.sin(dLon/2); 
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+                return R * c * kmToMi;
+            };
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(geoSuccess, geoError);
+        } else {
+          error('not supported');
+        }
+	};
+	locationFeatures();
 	var whenTurntableObjectsReady = function(fromRoomChange) {
 		var now = new Date();
 		/*
@@ -866,7 +1136,7 @@ $(document).ready(function() {
         if (!fromRoomChange) {
 			TFMEX.performMigrations()
 			$("#tfmExtended").remove();
-			TFMEX.$body.append('<div id="tfmExtended"><div id="tfmex-ytplayer"></div><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><div class="tag-wrap"><ul class="tag-list"></ul><ul class="auto-tag-list"></ul></div></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div></div>');
+			TFMEX.$body.append('<div id="tfmExtended"><div id="tfmex-ytplayer"></div><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><div class="tag-wrap"><ul class="tag-list"></ul><ul class="auto-tag-list"></ul></div></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div><div class="event-container hidden"><div class="events-header">Tour Dates</div><div class="events"></div></div></div>');
 
 			var customMenuItems = [
 				{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
@@ -1000,7 +1270,6 @@ $(document).ready(function() {
    			    turntable.playlist.addSong(song);
    			});
 		}
-
 		
 		TFMEX.lastUserAction = {};
         $.each(TFMEX.roomInfo.users, function(userId, value) {
@@ -1016,6 +1285,7 @@ $(document).ready(function() {
 				songs = [],
 				tag = $this.data("tag"),
 				genreTag = $this.data("genre-tag"),
+				lengthTag = $this.data("length-tag"),
 				bitrateTag = $this.data("bitrate-tag"),
 				metadata = null,
 				taggedSongs = [],
@@ -1030,6 +1300,8 @@ $(document).ready(function() {
 				    songs = TFMEX.tagSongs[tag];
 			    } else if(genreTag) {
 			        songs = TFMEX.genreSongs[genreTag];
+			    } else if(lengthTag) {
+			        songs = TFMEX.lengthSongs[lengthTag];
 			    } else if(bitrateTag) {
 			        songs = TFMEX.bitrateSongs[bitrateTag];
 			    }
@@ -1065,7 +1337,12 @@ $(document).ready(function() {
 				$('#tfmExtended .all-tags').removeClass('tag-active');
 				$('#tfmExtended .all-tags').addClass('tag-inactive');
 			}
+			$this.closest('.tag-group').addClass('group-active');
 		});
+		
+    	$("#tfmExtended .tag-wrap").delegate(".tag-group .title", "click.TFMEX", function() {
+    	    $(this).closest('.tag-group').toggleClass('collapsed');
+    	});
 
 		$('#tfmExtended .tag-wrap').delegate('.move-top', 'click.TFMEX', function() {
 			TFMEX.findSongInQueue($(this).data("song-id")).find('.goTop').click();
@@ -1080,6 +1357,7 @@ $(document).ready(function() {
 			$this.addClass("tag-inactive");
 			$('#tfmExtended .all-tags').addClass('tag-active');
 			$('#tfmExtended .all-tags').removeClass('tag-inactive');
+			$this.closest('.tag-group').removeClass('group-active');
 		});
 		
 		$('#tfmExtended').delegate('.closeTags', 'click.TFMEX', function() {
@@ -1369,6 +1647,14 @@ $(document).ready(function() {
 							updateNowPlaying(songMetadata);
 							TFMEX.youtubePlayer.initialize()
 							raiseNewSongEvent();
+							if(TFMEX_KEYS) {
+    							if(TFMEX.geo.concertProvider === "ticketfly") {
+    							    TFMEX.geo.findTicketflyEvents();
+    							} else {
+    							    $('#tfmExtended .event-container').addClass('songkick');
+        							TFMEX.geo.findSongkickArtist();
+    							}
+							}
 						}
 					}
 				};
@@ -1450,45 +1736,114 @@ $(document).ready(function() {
 		    if(turntable.playlist.files.length && !TFMEX.autoTagsInitialized) {
 		        TFMEX.autoTagsInitialized = true;
                 TFMEX.bitrateSongs = {};
+                TFMEX.lengthSongs = {};
                 TFMEX.genreSongs = {};
     			for(i in turntable.playlist.files) {
     			    song = turntable.playlist.files[i];
     			    if(song.metadata.bitrate) {
     			        if(song.metadata.bitrate === 320) {
-    			            if(!TFMEX.bitrateSongs['Bitrate: 320']) {
-    			                TFMEX.bitrateSongs['Bitrate: 320'] = [];
+    			            if(!TFMEX.bitrateSongs['320k']) {
+    			                TFMEX.bitrateSongs['320k'] = [];
     			            }
-    			            TFMEX.bitrateSongs['Bitrate: 320'].push(song.fileId);
+    			            TFMEX.bitrateSongs['320k'].push(song.fileId);
     			        }
     			        if(song.metadata.bitrate < 320 && song.metadata.bitrate >= 256) {
-    			            if(!TFMEX.bitrateSongs['Bitrate: 256-319']) {
-    			                TFMEX.bitrateSongs['Bitrate: 256-319'] = [];
+    			            if(!TFMEX.bitrateSongs['256k-319k']) {
+    			                TFMEX.bitrateSongs['256k-319k'] = [];
     			            }
-    			            TFMEX.bitrateSongs['Bitrate: 256-319'].push(song.fileId);
+    			            TFMEX.bitrateSongs['256k-319k'].push(song.fileId);
     			        }
     			        if(song.metadata.bitrate < 256 && song.metadata.bitrate >= 192) {
-    			            if(!TFMEX.bitrateSongs['Bitrate: 192-255']) {
-    			                TFMEX.bitrateSongs['Bitrate: 192-255'] = [];
+    			            if(!TFMEX.bitrateSongs['192k-255k']) {
+    			                TFMEX.bitrateSongs['192k-255k'] = [];
     			            }
-    			            TFMEX.bitrateSongs['Bitrate: 192-255'].push(song.fileId);
+    			            TFMEX.bitrateSongs['192k-255k'].push(song.fileId);
     			        }
     			        if(song.metadata.bitrate < 192 && song.metadata.bitrate > 128) {
-    			            if(!TFMEX.bitrateSongs['Bitrate: 128-191']) {
-    			                TFMEX.bitrateSongs['Bitrate: 128-191'] = [];
+    			            if(!TFMEX.bitrateSongs['128k-191k']) {
+    			                TFMEX.bitrateSongs['128k-191k'] = [];
     			            }
-    			            TFMEX.bitrateSongs['Bitrate: 128-191'].push(song.fileId);
+    			            TFMEX.bitrateSongs['128k-191k'].push(song.fileId);
     			        }
     			        if(song.metadata.bitrate === 128) {
-    			            if(!TFMEX.bitrateSongs['Bitrate: 128']) {
-    			                TFMEX.bitrateSongs['Bitrate: 128'] = [];
+    			            if(!TFMEX.bitrateSongs['128k']) {
+    			                TFMEX.bitrateSongs['128k'] = [];
     			            }
-    			            TFMEX.bitrateSongs['Bitrate: 128'].push(song.fileId);
+    			            TFMEX.bitrateSongs['128k'].push(song.fileId);
     			        }
     			        if(song.metadata.bitrate < 128) {
-    			            if(!TFMEX.bitrateSongs['Bitrate: under 128']) {
-    			                TFMEX.bitrateSongs['Bitrate: under 128'] = [];
+    			            if(!TFMEX.bitrateSongs['<128k']) {
+    			                TFMEX.bitrateSongs['<128k'] = [];
     			            }
-    			            TFMEX.bitrateSongs['Bitrate: under 128'].push(song.fileId);
+    			            TFMEX.bitrateSongs['<128k'].push(song.fileId);
+    			        }
+    			    }
+    			    if(song.metadata.length) {
+    			        if(song.metadata.length < 60) {
+    			            if(!TFMEX.lengthSongs['under 1:00']) {
+    			                TFMEX.lengthSongs['under 1:00'] = [];
+    			            }
+    			            TFMEX.lengthSongs['under 1:00'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 60 && song.metadata.length < 120) {
+    			            if(!TFMEX.lengthSongs['1:00 - 1:59']) {
+    			                TFMEX.lengthSongs['1:00 - 1:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['1:00 - 1:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 120 && song.metadata.length < 180) {
+    			            if(!TFMEX.lengthSongs['2:00 - 2:59']) {
+    			                TFMEX.lengthSongs['2:00 - 2:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['2:00 - 2:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 180 && song.metadata.length < 240) {
+    			            if(!TFMEX.lengthSongs['3:00 - 3:59']) {
+    			                TFMEX.lengthSongs['3:00 - 3:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['3:00 - 3:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 240 && song.metadata.length < 300) {
+    			            if(!TFMEX.lengthSongs['4:00 - 4:59']) {
+    			                TFMEX.lengthSongs['4:00 - 4:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['4:00 - 4:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 300 && song.metadata.length < 360) {
+    			            if(!TFMEX.lengthSongs['5:00 - 5:59']) {
+    			                TFMEX.lengthSongs['5:00 - 5:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['5:00 - 5:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 360 && song.metadata.length < 420) {
+    			            if(!TFMEX.lengthSongs['6:00 - 6:59']) {
+    			                TFMEX.lengthSongs['6:00 - 6:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['6:00 - 6:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 420 && song.metadata.length < 480) {
+    			            if(!TFMEX.lengthSongs['7:00 - 7:59']) {
+    			                TFMEX.lengthSongs['7:00 - 7:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['7:00 - 7:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 480 && song.metadata.length < 540) {
+    			            if(!TFMEX.lengthSongs['8:00 - 8:59']) {
+    			                TFMEX.lengthSongs['8:00 - 8:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['8:00 - 8:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length >= 540 && song.metadata.length < 600) {
+    			            if(!TFMEX.lengthSongs['9:00 - 9:59']) {
+    			                TFMEX.lengthSongs['9:00 - 9:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['9:00 - 9:59'].push(song.fileId);
+    			        }
+    			        if(song.metadata.length > 600) {
+    			            if(!TFMEX.lengthSongs['over 9:59']) {
+    			                TFMEX.lengthSongs['over 9:59'] = [];
+    			            }
+    			            TFMEX.lengthSongs['over 9:59'].push(song.fileId);
     			        }
     			    }
     			    if(song.metadata.genre) {
@@ -1500,12 +1855,13 @@ $(document).ready(function() {
     			    }
     			}
     			
-    			sortAndDisplayTags(TFMEX.bitrateSongs, 'data-bitrate-tag', 'auto-tag-list');
-    			sortAndDisplayTags(TFMEX.genreSongs, 'data-genre-tag', 'auto-tag-list');
+    			sortAndDisplayTags(TFMEX.lengthSongs, 'length-tag', 'auto-tag-list', 'Length');
+    			sortAndDisplayTags(TFMEX.genreSongs, 'genre-tag', 'auto-tag-list', 'Genre');
+    			// sortAndDisplayTags(TFMEX.bitrateSongs, 'bitrate-tag', 'auto-tag-list', 'Bitrate');
 		    }
 		},
-		sortAndDisplayTags = function(tags, dataAttribute, targetList) {
-			var sortedTags = [], tag, htmlString;
+		sortAndDisplayTags = function(tags, dataAttribute, targetList, groupTitle) {
+			var sortedTags = [], tag, htmlString = '';
 			if(!targetList) {
 			    targetList = 'tag-list';
 			}
@@ -1518,14 +1874,27 @@ $(document).ready(function() {
 				var al=a.toLowerCase(),bl=b.toLowerCase();
 			 	return al==bl?(a==b?0:a<b?-1:1):al<bl?-1:1;
 			});
+			if(groupTitle) {
+			    htmlString = '<li class="tag-group collapsed"><div class="title"><span class="plus">+</span><span class="minus">-</span>' + groupTitle + '</div>';
+    			htmlString += '<ul class="' + dataAttribute + '-group">';
+				$("#tfmExtended ." + targetList).append(htmlString);
+			}
 			for(i in sortedTags) {
 				tag = sortedTags[i];
 				if(tags.hasOwnProperty(tag)) {
 				    htmlString = '<li ';
-				    htmlString += dataAttribute?dataAttribute:'data-tag';
+				    htmlString += dataAttribute?'data-'+dataAttribute:'data-tag';
 				    htmlString += '="' + tag +'" class="tag-inactive">' + tag + ' (' + tags[tag].length + ')</li>';
-					$("#tfmExtended ." + targetList).append(htmlString);
+				    if(groupTitle) {
+					    $("#tfmExtended ." + targetList + ' .' + dataAttribute + '-group').append(htmlString);
+				    } else {
+    					$("#tfmExtended ." + targetList).append(htmlString);
+				    }
 				}
+			}
+			if(groupTitle) {
+    			htmlString += '</ul>';
+        		htmlString += '</li>';
 			}
 		},
 		populateTagsColdStart = function() {
@@ -1820,7 +2189,7 @@ $(document).ready(function() {
 			document.getElementById('tt-ext-mpd').dispatchEvent(customEvent)			
 		},
 		raiseNewSongEvent = function() { //sends it to the content script
-			dispatchEventToContentScript('tt-ext-new-song-event')
+			dispatchEventToContentScript('tt-ext-new-song-event');
 		},
 		raiseNewRoomInfoEvent = function() {
 			dispatchEventToContentScript('tt-ext-new-room-info')
@@ -1854,7 +2223,7 @@ $(document).ready(function() {
 				// console.log("m.command: ", m.command, TFMEX.prefs);
 	            switch(m.command) {
 	                case "newsong":
-                        //console.debug("Got newsong message")
+                        console.debug("Got newsong message")
                         var roomInfo = m.room.metadata
                         var newSong = (roomInfo ? roomInfo.current_song : null);
                         if (newSong) {
