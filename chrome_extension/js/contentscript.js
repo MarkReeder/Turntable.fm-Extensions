@@ -36,7 +36,7 @@ function processNewRoomInfo(songMetadata) {
 function processNewSong(songMetadata) {
     var songLogSource = $('body').attr("data-current-song-log");
 	var songLog = songLogSource ? JSON.parse(songLogSource) : [];
-	//console.debug("Content:processNewSong: Got sending songlog to background:",songLog)
+	// console.debug("Content:processNewSong: Got songMetadata, sending songlog to background:",songLog)
 	populateSimilarSongs(songMetadata,songLog);
 	if (localStorage["lastfm-session-token"]) {	
 		sendDataToLastFM(songMetadata);
