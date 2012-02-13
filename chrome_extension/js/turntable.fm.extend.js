@@ -19,6 +19,7 @@ TFMEX.prefs = {
     "showListenerChanges": false,
 	"tagsClosed": false,
 	"enableScrobbling":false,
+	"enableSongkick":true,
     "messageTimeout": 10000
 };
 
@@ -324,6 +325,17 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 					],
 					[
 						"dd",["input#tt-ext-enable-scrobbling",{type:"checkbox","data-tfmex-pref":"enableScrobbling",value:1}]
+					]
+				]
+		],["div.clB"],
+		[
+			"div.tt-ext-pref-section",
+				["h3.tt-ext-pref-header","Songkick"],["dl.tt-ext-pref-body",
+					[
+						"dt","Show concert listings?"
+					],
+					[
+						"dd",["input#tt-ext-enable-songkick",{type:"checkbox","data-tfmex-pref":"enableSongkick",value:1}]
 					]
 				]
 		],["div.clB"],
@@ -1649,8 +1661,10 @@ $(document).ready(function() {
     							if(TFMEX.geo.concertProvider === "ticketfly") {
     							    TFMEX.geo.findTicketflyEvents();
     							} else {
-    							    $('#tfmExtended .event-container').addClass('songkick');
-        							TFMEX.geo.findSongkickArtist();
+    							    if (TFMEX.prefs["enableSongkick"]) {
+        							    $('#tfmExtended .event-container').addClass('songkick');
+            							TFMEX.geo.findSongkickArtist();
+            						}
     							}
 							}
 						}
@@ -1976,13 +1990,17 @@ $(document).ready(function() {
 			if (TFMEX.prefs["enableScrobbling"]) {
 				$markup.find('#tt-ext-enable-scrobbling').prop("checked",true)
 			}
+
+			if (TFMEX.prefs["enableSongkick"]) {
+				$markup.find('#tt-ext-enable-songkick').prop("checked",true)
+			}
 			
 			TFMEX.showOverlay(markup)
 		},
 		savePrefs = function() {
 			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
 			
-			var prefsToSave = ["showChat","filteredChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed"],
+			var prefsToSave = ["showChat","filteredChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed","enableSongkick"],
 			    prefValsToSave = ["chatFilters"];
 			for (var i in prefsToSave) {
 				var prefName = prefsToSave[i]
@@ -2020,6 +2038,14 @@ $(document).ready(function() {
 					dispatchEventToContentScript('tt-ext-need-lastfm-auth');
 				})
 			}
+			
+			if(!TFMEX.prefs["enableSongkick"]) { $('#tfmExtended .event-container').addClass('hidden'); }
+			if(!JSON.parse(localStorage.TFMEX).enableSongkick && TFMEX.prefs["enableSongkick"]) {
+			    $('#tfmExtended .event-container').addClass('songkick');
+			    $('#tfmExtended .event-container').removeClass('hidden');
+				TFMEX.geo.findSongkickArtist();
+			}
+			    
 			//console.debug("savePrefs: setting enable-scrobbling to:",enableScrobbling)
 			TFMEX.prefs["enableScrobbling"] = enableScrobbling //gets into local storage
 			
