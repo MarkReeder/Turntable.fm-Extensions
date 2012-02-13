@@ -978,6 +978,8 @@ $(document).ready(function() {
 	                            // console.log('event', event);
 		                        // if(TFMEX.geo.position) { console.log(getDistance(event.venue)); }
 	                        });
+                        } else {
+    	                    $('#tfmExtended .event-container').addClass('hidden');
                         }
                     }
                 );
