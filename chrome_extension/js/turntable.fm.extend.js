@@ -942,10 +942,30 @@ $(document).ready(function() {
 
 	    return dfd.promise();
 	}
+	/*
+	var lyricsDisplay = function() {
+	    var TFMEX.roomInfo.currentSong.metadata.artist
+	    var time_elapsed = TFMEX.roomInfo.currentSong.metadata.length - TFMEX.roommanager.time_left;
+	}
+	lyricsDisplay();
+	*/
 	var locationFeatures = function() {
+	    if(TFMEX.geo.concertProvider === 'ticketfly') {
+    	    var js;
+            js = document.createElement('script');
+            js.src = "http://api-stage.ticketfly.com/v2/js/tfly-pur-shared.js";
+            document.body.appendChild(js);
+
+            js = document.createElement('script');
+            js.src = "http://api-stage.ticketfly.com/v2/js/tfly-pur-widget-client.js";
+            document.body.appendChild(js);
+    		$('#tfmExtended .ticketfly-event').live('click', function(evt) {
+    			evt.preventDefault();
+    			TFP.widget.show($(evt.target).data().eventId);
+    		});
+	    }
         TFMEX.geo = {
             concertProvider: 'songkick',
-            // concertProvider: 'ticketfly',
             setUserLocation: function(position) {
                 TFMEX.geo.position = position;
             },
@@ -1003,8 +1023,6 @@ $(document).ready(function() {
 	                                return false;
 	                            }
 	                        });
-	                    } else {
-	                        $('#tfmExtended .event-container').addClass('hidden');
 	                    }
                     }
                 )
@@ -1072,20 +1090,6 @@ $(document).ready(function() {
     		    TFMEX.geo.findTicketflyEvents({'orgId':1, 'artistName':'Gotye'});
     		}
         }
-	    if(TFMEX.geo.concertProvider === 'ticketfly') {
-    	    var js;
-            js = document.createElement('script');
-            js.src = "http://api-stage.ticketfly.com/v2/js/tfly-pur-shared.js";
-            document.body.appendChild(js);
-
-            js = document.createElement('script');
-            js.src = "http://api-stage.ticketfly.com/v2/js/tfly-pur-widget-client.js";
-            document.body.appendChild(js);
-    		$('#tfmExtended .ticketfly-event').live('click', function(evt) {
-    			evt.preventDefault();
-    			TFP.widget.show($(evt.target).data().eventId);
-    		});
-	    }
 		var geoSuccess = function(position) {
     	        TFMEX.geo.setUserLocation(position);
 		    },
