@@ -1881,7 +1881,7 @@ $(document).ready(function() {
 				tag = sortedTags[i];
 				if(tags.hasOwnProperty(tag)) {
 				    htmlString = '<li ';
-				    htmlString += dataAttribute?'data-'+dataAttribute:'data-tag';
+				    htmlString += (dataAttribute && dataAttribute!=='data-tag')?'data-'+dataAttribute:'data-tag';
 				    htmlString += '="' + tag +'" class="tag-inactive">' + tag + ' (' + tags[tag].length + ')</li>';
 				    if(groupTitle) {
 					    $("#tfmExtended ." + targetList + ' .' + dataAttribute + '-group').append(htmlString);
