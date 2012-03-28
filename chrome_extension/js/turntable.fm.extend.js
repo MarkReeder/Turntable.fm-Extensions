@@ -20,7 +20,8 @@ TFMEX.prefs = {
 	"tagsClosed": false,
 	"enableScrobbling":false,
 	"enableSongkick":true,
-    "messageTimeout": 10000
+    "messageTimeout": 10000,
+    "eventsClosed": true
 };
 
 TFMEX.clearNotifications = function() {
@@ -970,8 +971,11 @@ $(document).ready(function() {
                     function(data) {
 	                    if(data.resultsPage.totalEntries) {
 	                        
-	                        $('#songboard').append('<a href="#" class="on-tour songkick"></a>');
+	                        $('.event-container.songkick').append('<div class="on-tour songkick"><span class="vertical-text">On Tour</span></div>');
 	                        $('#tfmExtended .event-container').removeClass('hidden');
+	                        if(TFMEX.prefs.eventsClosed) {
+	                            $('#tfmExtended .event-container').addClass('collapsed');
+	                        }
 	                        // console.log('found events: ', data.events);
 	                        if(TFMEX.geo.position) {
                     			data.resultsPage.results.event.sort(function(a,b) {
@@ -1013,6 +1017,9 @@ $(document).ready(function() {
 	                        $.each(data.resultsPage.results.artist, function(i, artist) {
 	                            if(artist.onTourUntil) {
         	                        $('#tfmExtended .event-container').removeClass('hidden');
+        	                        if(TFMEX.prefs.eventsClosed) {
+        	                            $('#tfmExtended .event-container').addClass('collapsed');
+        	                        }
 	                                TFMEX.geo.findSongkickEvents(artist.id);
 	                                return false;
 	                            }
@@ -1128,6 +1135,19 @@ $(document).ready(function() {
         } else {
           error('not supported');
         }
+        
+        $(".on-tour.songkick").live('click', function(evt) {
+    		TFMEX.prefs.eventsClosed = false;
+    		localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
+            evt.preventDefault();
+            $(evt.target).closest('.event-container').removeClass('collapsed');
+        });
+        $(".events-header").live('click', function(evt) {
+    		TFMEX.prefs.eventsClosed = true;
+    		localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
+            evt.preventDefault();
+            $(evt.target).closest('.event-container').addClass('collapsed');
+        });
 	};
 	locationFeatures();
 	var whenTurntableObjectsReady = function(fromRoomChange) {
@@ -1593,13 +1613,13 @@ $(document).ready(function() {
 		},
 		attachListeners = function() {
 			var numMessageListeners = 0;
-				// numSoundstartListeners = 0;
-			console.error("in attachListeners");
+			// numSoundstartListeners = 0;
+			// console.error("in attachListeners");
 			updatePrefs();
 	        var intervalID = window.setInterval(function() {
 				// console.log("window.turntable.eventListeners.message.length", window.turntable.eventListeners.message.length);
 	            if(window.turntable.eventListeners.message.length) {
-					console.log("attaching listeners");
+					// console.log("attaching listeners");
 					getRoomInfo();
 					
 					for(var eventListener in window.turntable.eventListeners.message) {
@@ -2247,7 +2267,7 @@ $(document).ready(function() {
 				// console.log("m.command: ", m.command, TFMEX.prefs);
 	            switch(m.command) {
 	                case "newsong":
-                        console.debug("Got newsong message")
+                        // console.debug("Got newsong message")
                         var roomInfo = m.room.metadata
                         var newSong = (roomInfo ? roomInfo.current_song : null);
                         if (newSong) {
