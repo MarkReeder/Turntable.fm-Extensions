@@ -1338,22 +1338,22 @@ $(document).ready(function() {
 			}
 			$('#playlist .firstInactive').removeClass('firstInactive');
 			if(tag === "___allsongs___") {
-				$('#playlist .song').removeClass('inactive');
+				$('#playlist .song').show().removeClass('inactive');
 				$this.closest('.tag-wrap').find('.tag-active').removeClass('tag-active').addClass('tag-inactive');
 				$('#tfmExtended .all-tags').addClass('tag-active');
 				$('#tfmExtended .all-tags').removeClass('tag-inactive');
 			} else {
-				$('#playlist .song').addClass('inactive');
+				$('#playlist .song').addClass('inactive').hide();
 				for(i in songs) {
 					if(songs.hasOwnProperty(i)) {
-						taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive');
+						taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive').show();
 						numTaggedSongs = taggedSongs.length;
 						if(numTaggedSongs === 0) {
 							missingSongs.push(songs[i])
 						}
 					}
 				}
-				$('#playlist .song.inactive').first().addClass('firstInactive');
+				$('#playlist .song.inactive').first().addClass('firstInactive').show();
 				if(missingSongs.length) {
 					$.each(missingSongs, function(i, missingSong) {
 						// console.log("missing song:", missingSong);
@@ -1382,7 +1382,7 @@ $(document).ready(function() {
 		$('#tfmExtended .tag-wrap').delegate('.tag-active', 'click.TFMEX', function() {
 			var $this = $(this);
 			$('#playlist .firstInactive').removeClass('firstInactive');
-			$('#playlist .song').removeClass('inactive');
+			$('#playlist .song').removeClass('inactive').show();
 			$this.removeClass("tag-active");
 			$this.addClass("tag-inactive");
 			$('#tfmExtended .all-tags').addClass('tag-active');
@@ -1401,7 +1401,7 @@ $(document).ready(function() {
 			});
 			TFMEX.prefs.tagsClosed = true;
 			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
-			$('#playlist .song .inactive').removeClass('inactive');
+			$('#playlist .song .inactive').removeClass('inactive').show();
 			$('#playlist .song .firstInactive').removeClass('firstInactive');
 			$('#tfmEX .tag-wrap .tag-active').removeClass('tag-active').addClass('tag-inactive');
 		});
