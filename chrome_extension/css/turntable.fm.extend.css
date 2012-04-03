@@ -8,6 +8,7 @@
 .tt-ext-preferences dl { text-align:left;}
 .tt-ext-preferences dt { float: left; clear: both; margin-bottom: 10px; width: 210px; }
 .tt-ext-preferences dd { float: right; clear: right; }
+.tt-ext-preferences dd.event-distance { width: 130px; margin-right: -55px; }
 .tt-ext-preferences .flL { float: left; }
 .tt-ext-preferences .clL { clear: left; }
 .tt-ext-preferences .flR { float: right; }
@@ -165,10 +166,12 @@
 #tfmExtended .event-container .events { padding: 5px; margin-top: 25px; }
 #tfmExtended .event-container.songkick .events { padding: 5px; margin-top: 59px; }
 #tfmExtended .event-container .sold-out { font-weight: bold; color: red; background-color: #ccc; -webkit-transform: rotate(-15deg); margin-top: 10px; position: absolute; }
-#tfmExtended .event-container .title { }
-#tfmExtended .event-container .date { font-size: 0.8em; }
+#tfmExtended .event-container .title { font-size: 12px; font-weight: bold; color: #000; text-decoration: none; }
+#tfmExtended .event-container .title:hover,
+#tfmExtended .event-container .title:active, { color: #B9762E; }
+#tfmExtended .event-container .date { font-size: 10px; color: #333; }
 #tfmExtended .event-container .city,
-#tfmExtended .event-container .venue { font-size: 0.8em; margin-bottom: 15px; }
+#tfmExtended .event-container .venue { font-size: 10px; margin-bottom: 15px; color: #333 }
 #tfmExtended .event-container.collapsed  { background-color: transparent; }
 #tfmExtended .event-container.collapsed .events-header,
 #tfmExtended .event-container.collapsed .events { display: none; }

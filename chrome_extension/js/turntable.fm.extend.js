@@ -21,7 +21,7 @@ TFMEX.prefs = {
 	"enableScrobbling":false,
 	"enableSongkick":true,
     "messageTimeout": 10000,
-    "eventsClosed": true
+    "eventDistance": 50
 };
 
 TFMEX.clearNotifications = function() {
@@ -337,6 +337,24 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 					],
 					[
 						"dd",["input#tt-ext-enable-songkick",{type:"checkbox","data-tfmex-pref":"enableSongkick",value:1}]
+					],
+					[
+						"dt","Automatically expand for concerts closer than:"
+					],
+					[
+						"dd.event-distance",
+						    [
+						        "select#tt-ext-event-distance",{"data-tfmex-pref":"eventDistance"},
+						         ["option",{"value":0},"Don't auto expand"]
+						        ,["option",{"value":5},"5 miles"]
+						        ,["option",{"value":10},"10 miles"]
+ 						        ,["option",{"value":25},"25 miles"]
+						        ,["option",{"value":50},"50 miles"]
+						        ,["option",{"value":100},"100 miles"]
+						        ,["option",{"value":250},"250 miles"]
+						        ,["option",{"value":500},"500 miles"]
+						        ,["option",{"value":5000},"5000 miles"]
+						    ]
 					]
 				]
 		],["div.clB"],
@@ -525,6 +543,15 @@ TFMEX.toggleFan = function(element) {
         $element.addClass("notFan");
         $element.attr('title','Become a Fan');
     }
+}
+
+TFMEX.addSong = function(songId, songMetadata) {
+    // songId = TFMEX.songlog[0]._id
+    // metadata = TFMEX.songlog[0].metadata
+    turntable.playlist.addSong({
+        fileId: songId,
+        metadata: songMetadata
+    });
 }
 
 TFMEX.tagView = function(tag, fileId) {
@@ -970,12 +997,9 @@ $(document).ready(function() {
                     queryObj,
                     function(data) {
 	                    if(data.resultsPage.totalEntries) {
-	                        
+    	                    $('#tfmExtended .event-container').removeClass('hidden');
 	                        $('.event-container.songkick').append('<div class="on-tour songkick"><span class="vertical-text">On Tour</span></div>');
 	                        $('#tfmExtended .event-container').removeClass('hidden');
-	                        if(TFMEX.prefs.eventsClosed) {
-	                            $('#tfmExtended .event-container').addClass('collapsed');
-	                        }
 	                        // console.log('found events: ', data.events);
 	                        if(TFMEX.geo.position) {
                     			data.resultsPage.results.event.sort(function(a,b) {
@@ -984,7 +1008,16 @@ $(document).ready(function() {
                     				if(isNaN(aD) && !isNaN(bD)) { return 1; }
                     			 	return aD==bD?(a.start.datetime==b.start.datetime?0:a.start.datetime<b.start.datetime?-1:1):aD<bD?-1:1;
                     			});
-	                        }    
+	                        }
+	                        if(data.resultsPage.results.event.length && TFMEX.prefs.eventDistance) {
+	                            if(getDistance(data.resultsPage.results.event[0].location) > TFMEX.prefs.eventDistance) {
+    	                            $('#tfmExtended .event-container').addClass('collapsed');
+    	                        } else {
+    	                            $('#tfmExtended .event-container').removeClass('collapsed');
+    	                        }
+	                        } else {
+	                            $('#tfmExtended .event-container').addClass('collapsed');
+	                        }
 	                        $.each(data.resultsPage.results.event, function(i, event) {
                 				var tree = TFMEX.songkickEventView(event);
                 				if (tree) {
@@ -1013,14 +1046,17 @@ $(document).ready(function() {
                 $.getJSON('http://api.songkick.com/api/3.0/search/artists.json?jsoncallback=?',
                     queryObj,
                     function(data) {
+                        var findEvents = function(id) {
+                            TFMEX.geo.findSongkickEvents(id);
+                        }
 	                    if(data.resultsPage.totalEntries) {
 	                        $.each(data.resultsPage.results.artist, function(i, artist) {
+	                            if(artist.displayName === TFMEX.roomInfo.currentSong.metadata.artist) {
+	                                findEvents(artist.id);
+	                                return false;
+	                            }
 	                            if(artist.onTourUntil) {
-        	                        $('#tfmExtended .event-container').removeClass('hidden');
-        	                        if(TFMEX.prefs.eventsClosed) {
-        	                            $('#tfmExtended .event-container').addClass('collapsed');
-        	                        }
-	                                TFMEX.geo.findSongkickEvents(artist.id);
+	                                findEvents(artist.id);
 	                                return false;
 	                            }
 	                        });
@@ -1137,13 +1173,11 @@ $(document).ready(function() {
         }
         
         $(".on-tour.songkick").live('click', function(evt) {
-    		TFMEX.prefs.eventsClosed = false;
     		localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
             evt.preventDefault();
             $(evt.target).closest('.event-container').removeClass('collapsed');
         });
         $(".events-header").live('click', function(evt) {
-    		TFMEX.prefs.eventsClosed = true;
     		localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
             evt.preventDefault();
             $(evt.target).closest('.event-container').addClass('collapsed');
@@ -2006,6 +2040,7 @@ $(document).ready(function() {
 	        }
 	        
 	        $markup.find('#chatFiltersValue').val(TFMEX.prefs.chatFilters.join(","));
+	        $markup.find('#tt-ext-event-distance').val(TFMEX.prefs.eventDistance);
 			
 			if (TFMEX.prefs["enableScrobbling"]) {
 				$markup.find('#tt-ext-enable-scrobbling').prop("checked",true)
@@ -2021,14 +2056,15 @@ $(document).ready(function() {
 			var oldEnableScrobblingValue = TFMEX.prefs["enableScrobbling"]
 			
 			var prefsToSave = ["showChat","filteredChat","showSong","showVote","showDJChanges","showListenerChanges","tagsClosed","enableSongkick"],
-			    prefValsToSave = ["chatFilters"];
+			    prefValsToSave = ["chatFilters"],
+			    prefSelectValsToSave = ["eventDistance"];
 			for (var i in prefsToSave) {
 				var prefName = prefsToSave[i]
 	            if (TFMEX.prefs.hasOwnProperty(prefName)) {
-					//console.debug("Processing pref",prefName)
+					// console.debug("Processing pref",prefName)
 					var chkBox = $('input[data-tfmex-pref=' + prefName + ']')
 					var val = chkBox.is(':checked')
-					//console.debug("Setting pref",prefName,"to",val)
+					// console.debug("Setting pref",prefName,"to",val)
 					TFMEX.prefs[prefName] = val;
 				}
 	        }    
@@ -2048,6 +2084,11 @@ $(document).ready(function() {
 					TFMEX.prefs[prefVal] = filters;
 				}
 	        }
+	        $.each(prefSelectValsToSave, function(i) {
+	            var prefName = prefSelectValsToSave[i],
+	                selectBox = $('select[data-tfmex-pref=' + prefName + ']');
+	            TFMEX.prefs[prefName] = selectBox.val();
+	        });
 		
 			var enableScrobbling = $('#tt-ext-enable-scrobbling').prop('checked')			
 			util.hideOverlay()
