@@ -693,16 +693,18 @@ TFMEX.addTagToSong = function(tag, fileId) {
 }
 
 TFMEX.updateQueueTagIcons = function() {
-	var i = 0;
+	var i = 0, numTotalSongs = 0;
+	for(i in turntable.playlist.songsByFid) { numTotalSongs++; }
 	TFMEX.songsUntagged = [];
-	var $songsInQueue = $('#playlist .queueView .song')
+	var $songsInQueue = $('#songs .songs .song');
 	if($songsInQueue.length && $songsInQueue.is(':visible')) {
+	    /*
 		$('#playlist .queueView .song').each(function() {
 			var fileId = null,
 				html = '',
 				$this = $(this),
 				currentTagIcon = $this.find('a.tag');
-			fileId = turntable.playlist.files[i].fileId;
+			fileId = turntable.playlist.songsByFid[i].fileId;
 			if(!$this.attr('data-file-id') && fileId) {
 				$this.attr('data-file-id', fileId);
 			}
@@ -720,8 +722,9 @@ TFMEX.updateQueueTagIcons = function() {
 			$this.append(html);
 			i += 1;
 		});
+		*/
 		$('#tfmExtended .tag-list li[data-tag="___untagged___"]').html('Untagged Songs (' + TFMEX.songsUntagged.length + ')');
-		$('#tfmExtended .tag-list li[data-tag="___allsongs___"]').html('All Songs (' + turntable.playlist.files.length + ')');
+		$('#tfmExtended .tag-list li[data-tag="___allsongs___"]').html('All Songs (' + numTotalSongs + ')');
 		TFMEX.setAutoTags();
 	}
 }
@@ -868,8 +871,8 @@ TFMEX.tagsOverlayView = function(metadata) {
 }
 
 TFMEX.findSongInQueue = function(fileId) {
-	for(i in turntable.playlist.files) {
-		if(turntable.playlist.files[i].fileId === fileId) {
+	for(i in turntable.playlist.songsByFid) {
+		if(turntable.playlist.songsByFid[i].fileId === fileId) {
 			return $('#playlist .queue .song').eq(i);
 		}
 	}
@@ -1235,9 +1238,12 @@ $(document).ready(function() {
 					$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are available.")
 				}
 			});
+			$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-remote-song-tags', function() {
+			    console.log('remote tags', $('#tt-ext-mpd').first().attr('data-song-tags-remote'));
+			});
 			$('#tt-ex-export-queue').live('click', function(evt) {
     			evt.preventDefault();
-    			var xspfText = TFMEX.getXSPF(turntable.playlist.files);
+    			var xspfText = TFMEX.getXSPF(turntable.playlist.songsByFid);
     			$('#tt-ex-export').val(xspfText).select();
 			});
 			$('#tt-ex-export-recent').live('click', function(evt) {
@@ -1354,7 +1360,8 @@ $(document).ready(function() {
 				metadata = null,
 				taggedSongs = [],
 				numTaggedSongs = 0,
-				missingSongs = [];
+				missingSongs = [],
+				songFilterList = {};
 			
 			TFMEX.updateQueueTagIcons();
 			if(tag === "___untagged___") {
@@ -1372,21 +1379,22 @@ $(document).ready(function() {
 			}
 			$('#playlist .firstInactive').removeClass('firstInactive');
 			if(tag === "___allsongs___") {
-				$('#playlist .song').show().removeClass('inactive');
+				// $('#playlist .song').show().removeClass('inactive');
 				$this.closest('.tag-wrap').find('.tag-active').removeClass('tag-active').addClass('tag-inactive');
 				$('#tfmExtended .all-tags').addClass('tag-active');
 				$('#tfmExtended .all-tags').removeClass('tag-inactive');
+				turntable.playlist.queue.clearFilter();
 			} else {
 				$('#playlist .song').addClass('inactive').hide();
 				for(i in songs) {
 					if(songs.hasOwnProperty(i)) {
-						taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive').show();
-						numTaggedSongs = taggedSongs.length;
-						if(numTaggedSongs === 0) {
-							missingSongs.push(songs[i])
-						}
+						// taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive').show();
+						// numTaggedSongs = taggedSongs.length;
+						songFilterList[songs[i]] = true;
+						// if(numTaggedSongs === 0) { missingSongs.push(songs[i]); }
 					}
 				}
+				turntable.playlist.queue.setFilter(songFilterList);
 				$('#playlist .song.inactive').first().addClass('firstInactive').show();
 				if(missingSongs.length) {
 					$.each(missingSongs, function(i, missingSong) {
@@ -1421,6 +1429,7 @@ $(document).ready(function() {
 			$this.addClass("tag-inactive");
 			$('#tfmExtended .all-tags').addClass('tag-active');
 			$('#tfmExtended .all-tags').removeClass('tag-inactive');
+			turntable.playlist.queue.clearFilter();
 			$this.closest('.tag-group').removeClass('group-active');
 		});
 		
@@ -1579,8 +1588,8 @@ $(document).ready(function() {
 				}
 			}
 			try {
-				for(j in turntable.playlist.files) {
-					playlistSong = turntable.playlist.files[j];
+				for(j in turntable.playlist.songsByFid) {
+					playlistSong = turntable.playlist.songsByFid[j];
 					if(songToMatch._id === playlistSong.fileId ||
 						(normalizeText(songToMatch.metadata.artist) === normalizeText(playlistSong.metadata.artist)
 						 && normalizeText(songToMatch.metadata.song) === normalizeText(playlistSong.metadata.song))) {
@@ -1597,9 +1606,9 @@ $(document).ready(function() {
 			var i = 0,
 				song = {};
 			$('#tfmExtended .tag-list').html("Loading tags from last.fm, please be patient...");
-			for(i in turntable.playlist.files) {
+			for(i in turntable.playlist.songsByFid) {
 				try {
-					song = turntable.playlist.files[i];
+					song = turntable.playlist.songsByFid[i];
 					// console.log("TFMEX.songTags[song.fileId]", TFMEX.songTags[song.fileId]);
 					if(typeof(TFMEX.songTags[song.fileId]) === "undefined") {
 						$("body").attr("data-temp-song-obj", JSON.stringify(song));
@@ -1760,7 +1769,8 @@ $(document).ready(function() {
 			}
 		},
 		refreshTagSongs = function() {
-			var songId, song, i, j, tag, sortedTags = [], activeTag = "", tags = [];
+			var songId, song, i, j, tag, sortedTags = [], activeTag = "", tags = [], numTotalSongs = 0;
+			for(i in turntable.playlist.songsByFid) { numTotalSongs++; }
 			TFMEX.tagSongs = {};
 			// console.log("TFMEX.songTags", TFMEX.songTags);
 			for(songId in TFMEX.songTags) {
@@ -1787,7 +1797,7 @@ $(document).ready(function() {
 			$("#tfmExtended .tag-list").html("");
 			sortAndDisplayTags(TFMEX.tagSongs, 'data-tag');
 			$("#tfmExtended .tag-list").append('<li data-tag="___untagged___" class="tag-inactive">Untagged Songs (' + TFMEX.songsUntagged.length + ')</li>');
-			$("#tfmExtended .tag-list").append('<li data-tag="___allsongs___" class="all-tags tag-inactive">All Songs (' + turntable.playlist.files.length + ')</li>');
+			$("#tfmExtended .tag-list").append('<li data-tag="___allsongs___" class="all-tags tag-inactive">All Songs (' + numTotalSongs + ')</li>');
 			$("#tfmExtended .tag-list").append('<li>-------------------------</li>');
 			if(activeTag) {
 				try {
@@ -1799,126 +1809,130 @@ $(document).ready(function() {
 			}
 		},
 		setAutoTags = function() {
-		    if(turntable.playlist.files.length && !TFMEX.autoTagsInitialized) {
+		    var numTotalSongs = 0;
+        	for(i in turntable.playlist.songsByFid) { numTotalSongs++; }
+		    if(numTotalSongs && !TFMEX.autoTagsInitialized) {
 		        TFMEX.autoTagsInitialized = true;
                 TFMEX.bitrateSongs = {};
                 TFMEX.lengthSongs = {};
                 TFMEX.genreSongs = {};
-    			for(i in turntable.playlist.files) {
-    			    song = turntable.playlist.files[i];
-    			    if(song.metadata.bitrate) {
-    			        if(song.metadata.bitrate === 320) {
-    			            if(!TFMEX.bitrateSongs['320k']) {
-    			                TFMEX.bitrateSongs['320k'] = [];
-    			            }
-    			            TFMEX.bitrateSongs['320k'].push(song.fileId);
-    			        }
-    			        if(song.metadata.bitrate < 320 && song.metadata.bitrate >= 256) {
-    			            if(!TFMEX.bitrateSongs['256k-319k']) {
-    			                TFMEX.bitrateSongs['256k-319k'] = [];
-    			            }
-    			            TFMEX.bitrateSongs['256k-319k'].push(song.fileId);
-    			        }
-    			        if(song.metadata.bitrate < 256 && song.metadata.bitrate >= 192) {
-    			            if(!TFMEX.bitrateSongs['192k-255k']) {
-    			                TFMEX.bitrateSongs['192k-255k'] = [];
-    			            }
-    			            TFMEX.bitrateSongs['192k-255k'].push(song.fileId);
-    			        }
-    			        if(song.metadata.bitrate < 192 && song.metadata.bitrate > 128) {
-    			            if(!TFMEX.bitrateSongs['128k-191k']) {
-    			                TFMEX.bitrateSongs['128k-191k'] = [];
-    			            }
-    			            TFMEX.bitrateSongs['128k-191k'].push(song.fileId);
-    			        }
-    			        if(song.metadata.bitrate === 128) {
-    			            if(!TFMEX.bitrateSongs['128k']) {
-    			                TFMEX.bitrateSongs['128k'] = [];
-    			            }
-    			            TFMEX.bitrateSongs['128k'].push(song.fileId);
-    			        }
-    			        if(song.metadata.bitrate < 128) {
-    			            if(!TFMEX.bitrateSongs['<128k']) {
-    			                TFMEX.bitrateSongs['<128k'] = [];
-    			            }
-    			            TFMEX.bitrateSongs['<128k'].push(song.fileId);
-    			        }
-    			    }
-    			    if(song.metadata.length) {
-    			        if(song.metadata.length < 60) {
-    			            if(!TFMEX.lengthSongs['under 1:00']) {
-    			                TFMEX.lengthSongs['under 1:00'] = [];
-    			            }
-    			            TFMEX.lengthSongs['under 1:00'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 60 && song.metadata.length < 120) {
-    			            if(!TFMEX.lengthSongs['1:00 - 1:59']) {
-    			                TFMEX.lengthSongs['1:00 - 1:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['1:00 - 1:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 120 && song.metadata.length < 180) {
-    			            if(!TFMEX.lengthSongs['2:00 - 2:59']) {
-    			                TFMEX.lengthSongs['2:00 - 2:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['2:00 - 2:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 180 && song.metadata.length < 240) {
-    			            if(!TFMEX.lengthSongs['3:00 - 3:59']) {
-    			                TFMEX.lengthSongs['3:00 - 3:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['3:00 - 3:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 240 && song.metadata.length < 300) {
-    			            if(!TFMEX.lengthSongs['4:00 - 4:59']) {
-    			                TFMEX.lengthSongs['4:00 - 4:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['4:00 - 4:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 300 && song.metadata.length < 360) {
-    			            if(!TFMEX.lengthSongs['5:00 - 5:59']) {
-    			                TFMEX.lengthSongs['5:00 - 5:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['5:00 - 5:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 360 && song.metadata.length < 420) {
-    			            if(!TFMEX.lengthSongs['6:00 - 6:59']) {
-    			                TFMEX.lengthSongs['6:00 - 6:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['6:00 - 6:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 420 && song.metadata.length < 480) {
-    			            if(!TFMEX.lengthSongs['7:00 - 7:59']) {
-    			                TFMEX.lengthSongs['7:00 - 7:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['7:00 - 7:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 480 && song.metadata.length < 540) {
-    			            if(!TFMEX.lengthSongs['8:00 - 8:59']) {
-    			                TFMEX.lengthSongs['8:00 - 8:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['8:00 - 8:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length >= 540 && song.metadata.length < 600) {
-    			            if(!TFMEX.lengthSongs['9:00 - 9:59']) {
-    			                TFMEX.lengthSongs['9:00 - 9:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['9:00 - 9:59'].push(song.fileId);
-    			        }
-    			        if(song.metadata.length > 600) {
-    			            if(!TFMEX.lengthSongs['over 9:59']) {
-    			                TFMEX.lengthSongs['over 9:59'] = [];
-    			            }
-    			            TFMEX.lengthSongs['over 9:59'].push(song.fileId);
-    			        }
-    			    }
-    			    if(song.metadata.genre) {
-    			        if(!TFMEX.genreSongs[song.metadata.genre]) {
-    			            TFMEX.genreSongs[song.metadata.genre] = [];
-    			        }
-    			        TFMEX.genreSongs[song.metadata.genre].push(song.fileId);
-    			        // console.log('TFMEX.genreSongs[' + song.metadata.genre + ']', TFMEX.genreSongs[song.metadata.genre]);
-    			    }
+    			for(i in turntable.playlist.songsByFid) {
+    			    song = turntable.playlist.songsByFid[i];
+    			    if(song.metadata) {
+        			    if(song.metadata.bitrate) {
+        			        if(song.metadata.bitrate === 320) {
+        			            if(!TFMEX.bitrateSongs['320k']) {
+        			                TFMEX.bitrateSongs['320k'] = [];
+        			            }
+        			            TFMEX.bitrateSongs['320k'].push(song.fileId);
+        			        }
+        			        if(song.metadata.bitrate < 320 && song.metadata.bitrate >= 256) {
+        			            if(!TFMEX.bitrateSongs['256k-319k']) {
+        			                TFMEX.bitrateSongs['256k-319k'] = [];
+        			            }
+        			            TFMEX.bitrateSongs['256k-319k'].push(song.fileId);
+        			        }
+        			        if(song.metadata.bitrate < 256 && song.metadata.bitrate >= 192) {
+        			            if(!TFMEX.bitrateSongs['192k-255k']) {
+        			                TFMEX.bitrateSongs['192k-255k'] = [];
+        			            }
+        			            TFMEX.bitrateSongs['192k-255k'].push(song.fileId);
+        			        }
+        			        if(song.metadata.bitrate < 192 && song.metadata.bitrate > 128) {
+        			            if(!TFMEX.bitrateSongs['128k-191k']) {
+        			                TFMEX.bitrateSongs['128k-191k'] = [];
+        			            }
+        			            TFMEX.bitrateSongs['128k-191k'].push(song.fileId);
+        			        }
+        			        if(song.metadata.bitrate === 128) {
+        			            if(!TFMEX.bitrateSongs['128k']) {
+        			                TFMEX.bitrateSongs['128k'] = [];
+        			            }
+        			            TFMEX.bitrateSongs['128k'].push(song.fileId);
+        			        }
+        			        if(song.metadata.bitrate < 128) {
+        			            if(!TFMEX.bitrateSongs['<128k']) {
+        			                TFMEX.bitrateSongs['<128k'] = [];
+        			            }
+        			            TFMEX.bitrateSongs['<128k'].push(song.fileId);
+        			        }
+        			    }
+        			    if(song.metadata.length) {
+        			        if(song.metadata.length < 60) {
+        			            if(!TFMEX.lengthSongs['under 1:00']) {
+        			                TFMEX.lengthSongs['under 1:00'] = [];
+        			            }
+        			            TFMEX.lengthSongs['under 1:00'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 60 && song.metadata.length < 120) {
+        			            if(!TFMEX.lengthSongs['1:00 - 1:59']) {
+        			                TFMEX.lengthSongs['1:00 - 1:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['1:00 - 1:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 120 && song.metadata.length < 180) {
+        			            if(!TFMEX.lengthSongs['2:00 - 2:59']) {
+        			                TFMEX.lengthSongs['2:00 - 2:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['2:00 - 2:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 180 && song.metadata.length < 240) {
+        			            if(!TFMEX.lengthSongs['3:00 - 3:59']) {
+        			                TFMEX.lengthSongs['3:00 - 3:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['3:00 - 3:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 240 && song.metadata.length < 300) {
+        			            if(!TFMEX.lengthSongs['4:00 - 4:59']) {
+        			                TFMEX.lengthSongs['4:00 - 4:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['4:00 - 4:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 300 && song.metadata.length < 360) {
+        			            if(!TFMEX.lengthSongs['5:00 - 5:59']) {
+        			                TFMEX.lengthSongs['5:00 - 5:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['5:00 - 5:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 360 && song.metadata.length < 420) {
+        			            if(!TFMEX.lengthSongs['6:00 - 6:59']) {
+        			                TFMEX.lengthSongs['6:00 - 6:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['6:00 - 6:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 420 && song.metadata.length < 480) {
+        			            if(!TFMEX.lengthSongs['7:00 - 7:59']) {
+        			                TFMEX.lengthSongs['7:00 - 7:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['7:00 - 7:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 480 && song.metadata.length < 540) {
+        			            if(!TFMEX.lengthSongs['8:00 - 8:59']) {
+        			                TFMEX.lengthSongs['8:00 - 8:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['8:00 - 8:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length >= 540 && song.metadata.length < 600) {
+        			            if(!TFMEX.lengthSongs['9:00 - 9:59']) {
+        			                TFMEX.lengthSongs['9:00 - 9:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['9:00 - 9:59'].push(song.fileId);
+        			        }
+        			        if(song.metadata.length > 600) {
+        			            if(!TFMEX.lengthSongs['over 9:59']) {
+        			                TFMEX.lengthSongs['over 9:59'] = [];
+        			            }
+        			            TFMEX.lengthSongs['over 9:59'].push(song.fileId);
+        			        }
+        			    }
+        			    if(song.metadata.genre) {
+        			        if(!TFMEX.genreSongs[song.metadata.genre]) {
+        			            TFMEX.genreSongs[song.metadata.genre] = [];
+        			        }
+        			        TFMEX.genreSongs[song.metadata.genre].push(song.fileId);
+        			        // console.log('TFMEX.genreSongs[' + song.metadata.genre + ']', TFMEX.genreSongs[song.metadata.genre]);
+        			    }
+        			}
     			}
     			
     			sortAndDisplayTags(TFMEX.lengthSongs, 'length-tag', 'auto-tag-list', 'Length');
@@ -2279,6 +2293,14 @@ $(document).ready(function() {
 		raiseNewRoomInfoEvent = function() {
 			dispatchEventToContentScript('tt-ext-new-room-info')
 		},
+		raiseNewSongTagsEvent = function() {
+		    $('#tt-ext-mpd').first().attr('data-user-id', TFMEX.userInfo.id);
+		    $('#tt-ext-mpd').first().attr('data-song-tags', localStorage.TFMEXsongTags);
+			dispatchEventToContentScript('tt-ext-new-song-tags');
+		},
+		raiseGetSongTagsEvent = function() {
+			dispatchEventToContentScript('tt-ext-get-song-tags');
+		},
 		getSendMessageFunction = function() {
 			var messageFunctionName = $('body').data('tt-ext-messageFunctionName')
 			if (!messageFunctionName) {
@@ -2440,6 +2462,8 @@ $(document).ready(function() {
 	            // console.log("Command Undefined");
 	        }
 	    }
+	    TFMEX.saveSongTagsRemotely = raiseNewSongTagsEvent;
+	    TFMEX.getRemoteSongTags = raiseGetSongTagsEvent;
 		TFMEX.refreshTagSongs = refreshTagSongs;
 	    TFMEX.setAutoTags = setAutoTags;
 		extensionEventListener.prototype.TFMEXListener = true;
