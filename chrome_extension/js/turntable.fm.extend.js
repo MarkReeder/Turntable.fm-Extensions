@@ -696,37 +696,32 @@ TFMEX.updateQueueTagIcons = function() {
 	var i = 0, numTotalSongs = 0;
 	for(i in turntable.playlist.songsByFid) { numTotalSongs++; }
 	TFMEX.songsUntagged = [];
-	var $songsInQueue = $('#songs .songs .song');
-	if($songsInQueue.length && $songsInQueue.is(':visible')) {
-	    /*
-		$('#playlist .queueView .song').each(function() {
-			var fileId = null,
-				html = '',
-				$this = $(this),
-				currentTagIcon = $this.find('a.tag');
-			fileId = turntable.playlist.songsByFid[i].fileId;
-			if(!$this.attr('data-file-id') && fileId) {
-				$this.attr('data-file-id', fileId);
-			}
-			if(currentTagIcon) {
-				currentTagIcon.remove();
-			}
-			html += '<a class="tag';
-			if(typeof(TFMEX.songTags[fileId]) === "undefined" || TFMEX.songTags[fileId].length === 0) {
-				TFMEX.songsUntagged.push(fileId);
-				html += ' no-tags';
-			}
-			html += '" data-file-id="';
-			html += fileId;
-			html += '"></a>';
-			$this.append(html);
-			i += 1;
-		});
-		*/
-		$('#tfmExtended .tag-list li[data-tag="___untagged___"]').html('Untagged Songs (' + TFMEX.songsUntagged.length + ')');
-		$('#tfmExtended .tag-list li[data-tag="___allsongs___"]').html('All Songs (' + numTotalSongs + ')');
-		TFMEX.setAutoTags();
-	}
+	$('#playlist').off('hover.TFMEX');
+	$('#playlist').on('hover.TFMEX', '.song', function() {
+		var fileId = null,
+			html = '',
+			$this = $(this),
+			currentTagIcon = $this.find('a.tag');
+		$this.find('.tag').remove();
+		fileId = $this.data().songData.fileId;
+		if(currentTagIcon) {
+			currentTagIcon.remove();
+		}
+		html += '<a class="tag';
+		if(typeof(TFMEX.songTags[fileId]) === "undefined" || TFMEX.songTags[fileId].length === 0) {
+			html += ' no-tags';
+		    if(TFMEX.songsUntagged[fileId] === undefined) {
+    			TFMEX.songsUntagged.push(fileId);
+		    }
+		}
+		html += '" data-file-id="';
+		html += fileId;
+		html += '"></a>';
+		$this.append(html);
+	});
+	// $('#tfmExtended .tag-list li[data-tag="___untagged___"]').html('Untagged Songs (' + TFMEX.songsUntagged.length + ')');
+	$('#tfmExtended .tag-list li[data-tag="___allsongs___"]').html('All Songs (' + numTotalSongs + ')');
+	TFMEX.setAutoTags();
 }
 
 TFMEX.youtubePlayer = {
@@ -1385,13 +1380,14 @@ $(document).ready(function() {
 				$('#tfmExtended .all-tags').removeClass('tag-inactive');
 				turntable.playlist.queue.clearFilter();
 			} else {
-				$('#playlist .song').addClass('inactive').hide();
+				for(i in turntable.playlist.songsByFid) {
+				    if(turntable.playlist.songsByFid.hasOwnProperty(i)) {
+				        songFilterList[turntable.playlist.songsByFid[i]] = false;
+				    }
+				}
 				for(i in songs) {
 					if(songs.hasOwnProperty(i)) {
-						// taggedSongs = $('#playlist .song[data-file-id="' + songs[i] + '"]').removeClass('inactive').show();
-						// numTaggedSongs = taggedSongs.length;
 						songFilterList[songs[i]] = true;
-						// if(numTaggedSongs === 0) { missingSongs.push(songs[i]); }
 					}
 				}
 				turntable.playlist.queue.setFilter(songFilterList);
@@ -1472,8 +1468,11 @@ $(document).ready(function() {
 		});
 		
 		
+		$('#songs').on('hover', '.song', function() {
+		    
+	    });
 		
-		$('#playlist').delegate('.tag', 'click.TFMEX', function() {
+		$('#songs').delegate('.tag', 'click.TFMEX', function() {
 			var containers = {},
 				fileId = $(this).data('file-id'),
 				tags = TFMEX.songTags[fileId],
@@ -1796,7 +1795,7 @@ $(document).ready(function() {
 			}
 			$("#tfmExtended .tag-list").html("");
 			sortAndDisplayTags(TFMEX.tagSongs, 'data-tag');
-			$("#tfmExtended .tag-list").append('<li data-tag="___untagged___" class="tag-inactive">Untagged Songs (' + TFMEX.songsUntagged.length + ')</li>');
+			// $("#tfmExtended .tag-list").append('<li data-tag="___untagged___" class="tag-inactive">Untagged Songs (' + TFMEX.songsUntagged.length + ')</li>');
 			$("#tfmExtended .tag-list").append('<li data-tag="___allsongs___" class="all-tags tag-inactive">All Songs (' + numTotalSongs + ')</li>');
 			$("#tfmExtended .tag-list").append('<li>-------------------------</li>');
 			if(activeTag) {
