@@ -694,8 +694,16 @@ TFMEX.addTagToSong = function(tag, fileId) {
 
 TFMEX.updateQueueTagIcons = function() {
 	var i = 0, numTotalSongs = 0;
-	for(i in turntable.playlist.songsByFid) { numTotalSongs++; }
 	TFMEX.songsUntagged = [];
+	for(i in turntable.playlist.songsByFid) {
+	    var fileId = turntable.playlist.songsByFid[i].fileId;
+	    numTotalSongs++;
+		if(TFMEX.songTags && (typeof(TFMEX.songTags[fileId]) === "undefined" || TFMEX.songTags[fileId].length === 0)) {
+		    if(TFMEX.songsUntagged[fileId] === undefined) {
+    			TFMEX.songsUntagged.push(fileId);
+		    }
+		}
+	}
 	$('#playlist').off('hover.TFMEX');
 	$('#playlist').on('hover.TFMEX', '.song', function() {
 		var fileId = null,
@@ -710,16 +718,13 @@ TFMEX.updateQueueTagIcons = function() {
 		html += '<a class="tag';
 		if(typeof(TFMEX.songTags[fileId]) === "undefined" || TFMEX.songTags[fileId].length === 0) {
 			html += ' no-tags';
-		    if(TFMEX.songsUntagged[fileId] === undefined) {
-    			TFMEX.songsUntagged.push(fileId);
-		    }
 		}
 		html += '" data-file-id="';
 		html += fileId;
 		html += '"></a>';
 		$this.append(html);
 	});
-	// $('#tfmExtended .tag-list li[data-tag="___untagged___"]').html('Untagged Songs (' + TFMEX.songsUntagged.length + ')');
+	$('#tfmExtended .tag-list li[data-tag="___untagged___"]').html('Untagged Songs (' + TFMEX.songsUntagged.length + ')');
 	$('#tfmExtended .tag-list li[data-tag="___allsongs___"]').html('All Songs (' + numTotalSongs + ')');
 	TFMEX.setAutoTags();
 }
@@ -1795,7 +1800,7 @@ $(document).ready(function() {
 			}
 			$("#tfmExtended .tag-list").html("");
 			sortAndDisplayTags(TFMEX.tagSongs, 'data-tag');
-			// $("#tfmExtended .tag-list").append('<li data-tag="___untagged___" class="tag-inactive">Untagged Songs (' + TFMEX.songsUntagged.length + ')</li>');
+			$("#tfmExtended .tag-list").append('<li data-tag="___untagged___" class="tag-inactive">Untagged Songs (' + TFMEX.songsUntagged.length + ')</li>');
 			$("#tfmExtended .tag-list").append('<li data-tag="___allsongs___" class="all-tags tag-inactive">All Songs (' + numTotalSongs + ')</li>');
 			$("#tfmExtended .tag-list").append('<li>-------------------------</li>');
 			if(activeTag) {
