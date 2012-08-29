@@ -508,7 +508,7 @@ TFMEX.roomUserView = function(user) {
         } catch(e) { console.log(e.message) }
 	    userNameSpan.push("(DJ" + songCountMessage + idleMessage +")");
 	}
-	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a.icon.ttDashboard",{href:'http://ttdashboard.com/user/uid/' + user.userid + '/',target: "_blank",title:'on TTDashboard'},""]];
+	auxSpan = ["span.tt-ext-cell.tt-ext-aux-links",["a.icon.ttDashboard",{href:'http://ttstats.info/user/' + user.userid,target: "_blank",title:'on TTStats'},""]];
 	if(!userIsSelf) {
     	if(fanOf) {
     	    auxSpan.push(["a.icon.fan.evtToggleFan",{title:"Unfan",'data-userid':user.userid,href:"javascript:"},""]);
