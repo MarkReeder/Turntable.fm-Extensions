@@ -498,7 +498,7 @@ TFMEX.roomUserView = function(user) {
     };
 	if(userIsOnDeckPosition > -1) {
         try {
-            idleMessage = " - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0));
+            // idleMessage = " - idle: " + secondsToHms(((now.getTime() - TFMEX.lastUserAction[user.userid].getTime()) / 1000).toFixed(0));
         } catch(e) { console.log(e.message) }
         try {
             if(TFMEX.djSongCount[user.userid]) {
