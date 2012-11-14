@@ -939,7 +939,6 @@ $(document).ready(function() {
 				// console.log("attempting to resolve");
 				// console.log(Object.keys(turntable).length, tKeysLength);
 				// console.dir(turntable);
-
 				for(var o in turntable) {
 					if(turntable[o] !== null) {
 						for(var o2 in turntable[o]) {
@@ -1172,7 +1171,7 @@ $(document).ready(function() {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(geoSuccess, geoError);
         } else {
-          error('not supported');
+          geoError('not supported');
         }
         
         $(".on-tour.songkick").live('click', function(evt) {
@@ -1188,6 +1187,14 @@ $(document).ready(function() {
 	};
 	locationFeatures();
 	var whenTurntableObjectsReady = function(fromRoomChange) {
+		var disableTFMEX = localStorage.getItem("disableTFMEX");
+		if($('#header').length && disableTFMEX !== "0") {
+            if(disableTFMEX === "1" || confirm('Turntable.fm has introduced changes which may lead to issues with extensions. Would you like to temporarly disable Turntable.fm Extended while compatibility is verified?')) {
+                localStorage.setItem("disableTFMEX", "1");
+                return;
+            }
+            localStorage.setItem("disableTFMEX", "0");
+        }
 		var now = new Date();
 		/*
 		console.log("success!");
