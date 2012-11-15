@@ -71,7 +71,7 @@ TFMEX.lastUserAction = {};
 TFMEX.djSongCount = {};
 
 TFMEX.showOverlay = function (tree){
-	util.showOverlay(tree);
+	turntable.showOverlay(tree);
 }
 
 TFMEX.suggestionsOverlayView = function() {
@@ -89,7 +89,7 @@ TFMEX.suggestionsOverlayView = function() {
 			"div.close-x",
 			{
 				event: {
-					click: util.hideOverlay
+					click: turntable.hideOverlay
 				}
 			} 
 		],
@@ -264,7 +264,7 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 			"div.close-x",
 			{
 				event: {
-					click: cancelEvent //util.hideOverlay
+					click: cancelEvent //turntable.hideOverlay
 				}
 			} 
 		],
@@ -377,7 +377,7 @@ TFMEX.exportView = function(cancelEvent) {
 			"div.close-x",
 			{
 				event: {
-					click: cancelEvent //util.hideOverlay
+					click: cancelEvent //turntable.hideOverlay
 				}
 			} 
 		],
@@ -424,7 +424,7 @@ TFMEX.roomUsersView = function() {
 			"div.close-x",
 			{
 				event: {
-					click: util.hideOverlay
+					click: turntable.hideOverlay
 				}
 			} 
 		],
@@ -443,11 +443,11 @@ TFMEX.roomUserView = function(user) {
 		userVote = [],
 		userVoteText = "",
 		returnObj = null,
-		userIsSelf = user.userid === TFMEX.roomInfo.selfId,
+		userIsSelf = user.userid === TFMEX.user.id,
 	    userIsMod = false,
 	    userIsCreator = user.userid === TFMEX.roomInfo.creatorId,
 	    userIsSuper = user.acl === 1,
-	    userIsOnDeckPosition = jQuery.inArray(user.userid, TFMEX.roomInfo.djIds),
+	    userIsOnDeckPosition = jQuery.inArray(user.userid, TFMEX.room.djIds),
 	    fanOf = user.fanof,
 	    divTag = "div.tt-ext-room-user",
 	    userNameSpan = [],
@@ -458,7 +458,7 @@ TFMEX.roomUserView = function(user) {
 	    idleMessage = "",
 	    songCountMessage = "",
 	    playCount = 0;
-	userIsMod = jQuery.inArray(user.userid, TFMEX.roomInfo.moderators) > -1;
+	userIsMod = jQuery.inArray(user.userid, TFMEX.roommanager.roomData.metadata.moderator_id) > -1;
 	if (userIsMod || userIsCreator) divTag += ".tt-ext-room-mod";    
 	if (userIsSuper) divTag += ".tt-ext-super-user";
 	returnObj = [
@@ -515,7 +515,7 @@ TFMEX.roomUserView = function(user) {
     	} else {
         	auxSpan.push(["a.icon.fan.notFan.evtToggleFan",{title:"Become a Fan",'data-userid':user.userid,href:"javascript:"},""]);
     	}
-    	if(TFMEX.roomInfo.isMod(TFMEX.roomInfo.selfId)) {
+    	if(TFMEX.room.isMod(TFMEX.roomInfo.selfId)) {
         	auxSpan.push(["a.icon.evtBootUser.bootUser",{'data-userid':user.userid,href:"javascript:",title:'Boot User'},""]);
     	}
 	}
@@ -829,7 +829,7 @@ TFMEX.youtubePlayer = {
 
 TFMEX.showUserProfile = function(userId) {
 	TFMEX.roommanager.callback('profile',userId);
-	util.hideOverlay();
+	turntable.hideOverlay();
 }
 
 TFMEX.tagsOverlayView = function(metadata) {
@@ -849,7 +849,7 @@ TFMEX.tagsOverlayView = function(metadata) {
 			"div.close-x",
 			{
 				event: {
-					click: util.hideOverlay
+					click: turntable.hideOverlay
 				}
 			} 
 		],
@@ -924,13 +924,13 @@ $(document).ready(function() {
 	var tKeysLength = Object.keys(turntable).length,
 		lastPlayedSong = {},
 		tagIconsAdded = false;
-	TFMEX.roomInfo = null;
-	TFMEX.userInfo = null;
+	TFMEX.room = null;
+	TFMEX.user = null;
 	TFMEX.roommanager = null;
 	TFMEX.geo = {};
 	var getTurntableObjects = function(){
-		TFMEX.roomInfo = null;
-		TFMEX.userInfo = null;
+		TFMEX.room = null;
+		TFMEX.user = null;
 		TFMEX.roommanager = null;
 //     	TFMEX.geo = {};
 	    var dfd = $.Deferred(),
@@ -939,18 +939,14 @@ $(document).ready(function() {
 				// console.log("attempting to resolve");
 				// console.log(Object.keys(turntable).length, tKeysLength);
 				// console.dir(turntable);
+				TFMEX.user = turntable.user;
 				for(var o in turntable) {
 					if(turntable[o] !== null) {
 						for(var o2 in turntable[o]) {
 							if(turntable[o][o2] !== null) {
-								if(o2 == 'creatorId') {
+								if(o2 == 'roomInfoHandler') {
 									// console.log("currentDj found in: ", o);
-									TFMEX.roomInfo = turntable[o];
-									break;
-								}
-								if(o2 == 'displayName') {
-									// console.log("displayName found in: ", o);
-									TFMEX.userInfo = turntable[o];
+									TFMEX.room = turntable[o];
 									break;
 								}
 							}
@@ -958,17 +954,23 @@ $(document).ready(function() {
 					}
 				}
 
-				if(TFMEX.roomInfo && TFMEX.userInfo) {
-					for(o in TFMEX.roomInfo) {
-						if(TFMEX.roomInfo[o] !== null) {
-							for(o2 in TFMEX.roomInfo[o]) {
-								if(o2 == 'myuserid') {
-									TFMEX.roommanager = TFMEX.roomInfo[o]
+				if(TFMEX.room && TFMEX.user) {
+					for(o in TFMEX.room) {
+						if(TFMEX.room[o] !== null) {
+							for(o2 in TFMEX.room[o]) {
+								if(o2 == 'taken_dj_map') {
+									TFMEX.roommanager = TFMEX.room[o]
 								}
 							}
 						}
 					}
-					dfd.resolve();
+					if(TFMEX.roommanager) {
+					    dfd.resolve();
+					} else {
+    					setTimeout(function(){
+    						resolveWhenReady();
+    					}, 250);
+					}
 				} else {
 					setTimeout(function(){
 						resolveWhenReady();
@@ -1038,7 +1040,7 @@ $(document).ready(function() {
             findSongkickArtist: function(queryObj) {
                 if(!queryObj) {
                     queryObj = {
-                        'query'     : TFMEX.roomInfo.currentSong.metadata.artist,
+                        'query'     : TFMEX.room.currentSong.metadata.artist,
                         'apikey'    : TFMEX_KEYS.songkick
                     };
                 }    
@@ -1053,7 +1055,7 @@ $(document).ready(function() {
                         }
 	                    if(data.resultsPage.totalEntries) {
 	                        $.each(data.resultsPage.results.artist, function(i, artist) {
-	                            if(artist.displayName === TFMEX.roomInfo.currentSong.metadata.artist) {
+	                            if(artist.displayName === TFMEX.room.currentSong.metadata.artist) {
 	                                findEvents(artist.id);
 	                                return false;
 	                            }
@@ -1090,7 +1092,7 @@ $(document).ready(function() {
                 if(!queryObj) {
                     queryObj = {
 	                    'orgId'         : 1,
-	                    'artistName'    : TFMEX.roomInfo.currentSong.metadata.artist,
+	                    'artistName'    : TFMEX.room.currentSong.metadata.artist,
 	                    'tflyTicketd'   : true
 	                };
                 }
@@ -1187,19 +1189,12 @@ $(document).ready(function() {
 	};
 	locationFeatures();
 	var whenTurntableObjectsReady = function(fromRoomChange) {
-		var disableTFMEX = localStorage.getItem("disableTFMEX");
-		if($('#header').length && disableTFMEX !== "0") {
-            if(disableTFMEX === "1" || confirm('Turntable.fm has introduced changes which may lead to issues with extensions. Would you like to temporarly disable Turntable.fm Extended while compatibility is verified?')) {
-                localStorage.setItem("disableTFMEX", "1");
-                return;
-            }
-            localStorage.setItem("disableTFMEX", "0");
-        }
+		localStorage.removeItem("disableTFMEX");
 		var now = new Date();
 		/*
 		console.log("success!");
-		console.log(TFMEX.roomInfo);
-		console.log(TFMEX.userInfo);
+		console.log(TFMEX.room);
+		console.log(TFMEX.user);
 		console.log("TFMEX.roommanager", TFMEX.roommanager);
 		*/
 		
@@ -1209,8 +1204,8 @@ $(document).ready(function() {
 	    
         if (!fromRoomChange) {
 			TFMEX.performMigrations()
-			$("#tfmExtended").remove();
-			TFMEX.$body.append('<div id="tfmExtended"><div id="tfmex-ytplayer"></div><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><div class="tag-wrap"><ul class="tag-list"></ul><ul class="auto-tag-list"></ul></div></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div><div class="event-container hidden"><div class="events-header">Tour Dates</div><div class="events"></div></div></div>');
+			$("#tfmExtendedWrap").remove();
+			TFMEX.$body.append('<div id="tfmExtendedWrap"><div id="tfmExtended"><div id="tfmex-ytplayer"></div><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><div class="tag-wrap"><ul class="tag-list"></ul><ul class="auto-tag-list"></ul></div></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div><div class="event-container hidden"><div class="events-header">Tour Dates</div><div class="events"></div></div></div></div>');
 
 			var customMenuItems = [
 				{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
@@ -1219,9 +1214,9 @@ $(document).ready(function() {
 			]
 
 			$.each(customMenuItems,function (i,menuItem) {
-				var pos = $('#menuh .menuItem').length - 2
+				var pos = $('#settings-dropdown .option').length - 1;
 				// console.log(pos);
-				var tree = TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId)
+				var tree = TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId);
 				if (tree) {
 					// console.log("Creating menu item",menuItem.name,"with tree",tree)
 					$("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(tree))
@@ -1321,7 +1316,7 @@ $(document).ready(function() {
 					else {
 						$searchBox.val($(evt.target).data('query'))
 						$('form.input.songSearch').trigger('submit')
-						util.hideOverlay()
+						turntable.hideOverlay()
 					}
 
 			});
@@ -1349,7 +1344,7 @@ $(document).ready(function() {
 		}
 		
 		TFMEX.lastUserAction = {};
-        $.each(TFMEX.roomInfo.users, function(userId, value) {
+        $.each(TFMEX.room.users, function(userId, value) {
             TFMEX.lastUserAction[userId] = now;
         });
         
@@ -1443,12 +1438,12 @@ $(document).ready(function() {
 		
 		$('#tfmExtended').delegate('.closeTags', 'click.TFMEX', function() {
 			$('#tfmExtended .tag-container').animate({
-				left:'-230px'
+				right:'-185px'
 			}, function() {
 				$('tfmExtended .tag-container').addClass('closed');
 			});
 			$('#tfmExtended .openTags').animate({
-				left:'230px'
+				left:'-27px'
 			});
 			TFMEX.prefs.tagsClosed = true;
 			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
@@ -1460,10 +1455,10 @@ $(document).ready(function() {
 		$('#tfmExtended').delegate('.openTags', 'click.TFMEX', function() {
 			$('tfmExtended .tag-container').removeClass('closed');
 			$('#tfmExtended .tag-container').animate({
-				left:'0'
+				right:'0px'
 			});
 			$('#tfmExtended .openTags').animate({
-				left:'200px'
+				left:'185px'
 			});
 			TFMEX.prefs.tagsClosed = false;
 			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
@@ -1636,7 +1631,7 @@ $(document).ready(function() {
 
 				messageFunc({
 					api: "room.info",
-					roomid: TFMEX.roomInfo.roomId
+					roomid: TFMEX.room.roomId
 				}, function(info){
 					//console.debug("Got room.info with songlog",info.room.metadata.songlog)
 					var song, $songQueue;
@@ -1721,8 +1716,8 @@ $(document).ready(function() {
 						TFMEX.$body.unbind("ttfm-got-room-info",boundHandler)
 						// console.debug("Unbound the ttfm-got-room-info handler")
 					}
-					if(TFMEX.roomInfo && TFMEX.roomInfo.currentSong) {
-						songMetadata = TFMEX.roomInfo.currentSong.metadata;
+					if(TFMEX.room && TFMEX.room.currentSong) {
+						songMetadata = TFMEX.room.currentSong.metadata;
 						if((songMetadata.song !== lastSongMetadata.song && songMetadata.artist !== lastSongMetadata.artist)) {
 							// console.log("Found a change!");
 							lastSongMetadata = songMetadata;
@@ -2030,7 +2025,7 @@ $(document).ready(function() {
 			$.each(TFMEX.votelog, function(index, user) {
     			TFMEX.userVotes[this[0]] = this[1];
 			});
-			$.each(TFMEX.roomInfo.users, function(index, user) {
+			$.each(TFMEX.room.users, function(index, user) {
 			    sortedUsers.push(user);
 			});
 			
@@ -2047,12 +2042,12 @@ $(document).ready(function() {
 			TFMEX.showOverlay(markup)
 		}
 		showExport = function() {
-            var markup = util.buildTree(TFMEX.exportView(util.hideOverlay));
+            var markup = util.buildTree(TFMEX.exportView(turntable.hideOverlay));
 
             TFMEX.showOverlay(markup)
 		},
 		showPrefs = function() {
-			var markup = util.buildTree(TFMEX.preferencesView(util.hideOverlay,savePrefs))
+			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,savePrefs))
 			var $markup = $(markup)
 			
 			updatePrefs();
@@ -2116,7 +2111,7 @@ $(document).ready(function() {
 	        });
 		
 			var enableScrobbling = $('#tt-ext-enable-scrobbling').prop('checked')			
-			util.hideOverlay()
+			turntable.hideOverlay()
 						
 			if (!oldEnableScrobblingValue && enableScrobbling) {
 				turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
@@ -2163,10 +2158,10 @@ $(document).ready(function() {
 	        preferencesContent += '<dd><input type="checkbox" id="showListenerChanges" data-tfmex-pref="showListenerChanges" value="1" /></dd>';
 	        preferencesContent += '</dl>';
 
-	        if(TFMEX.votelog.length === 0 && typeof(TFMEX.roomInfo.upvoters) !== "undefined" && TFMEX.roomInfo.upvoters.length > 0) {
-	            for (var upvoter in TFMEX.roomInfo.upvoters) {
-	                if (TFMEX.roomInfo.upvoters.hasOwnProperty(upvoter)) {
-	                    TFMEX.votelog.push([TFMEX.roomInfo.upvoters[upvoter], "up"]);
+	        if(TFMEX.votelog.length === 0 && typeof(TFMEX.room.upvoters) !== "undefined" && TFMEX.room.upvoters.length > 0) {
+	            for (var upvoter in TFMEX.room.upvoters) {
+	                if (TFMEX.room.upvoters.hasOwnProperty(upvoter)) {
+	                    TFMEX.votelog.push([TFMEX.room.upvoters[upvoter], "up"]);
 	                }
 	            }
 	        }
@@ -2177,7 +2172,7 @@ $(document).ready(function() {
 	            if (TFMEX.votelog.hasOwnProperty(vote)) {
 	                currentVote = TFMEX.votelog[vote];
 	                try {
-	                    currentVoteUserName = TFMEX.roomInfo.users[currentVote[0]].name;
+	                    currentVoteUserName = TFMEX.room.users[currentVote[0]].name;
 	                } catch(e) { };
 					if(currentVoteUserName !== "") {
 			            preferencesContent += "<li>";
@@ -2254,16 +2249,16 @@ $(document).ready(function() {
 				try {
 		    		highlightMatchingTracks(songToMatch, $("#right-panel .songlist .song"));
 		    		setTimeout(function() {
-                        if(typeof(TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid]) === "undefined") {
-                            TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] = 0;
+                        if(typeof(TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].userid]) === "undefined") {
+                            TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].userid] = 0;
                         }
-                        TFMEX.djSongCount[TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].userid] += 1;
+                        TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].userid] += 1;
 		    		}, 500);
 		            if(TFMEX.prefs.showSong) {
 		    			// console.log("About to show song: ", songObj);
 		    			setTimeout(function() {
 		    				// console.log("Show Song: ", songMetadata);
-		    				var title = TFMEX.roomInfo.users[TFMEX.roomInfo.currentDj].name + " is spinning:",
+		    				var title = TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].name + " is spinning:",
 		                        coverArt = songObj.coverart?songObj.coverart:"",
 		                        body = songObj.artist + " - " + songObj.song;
 		                    desktopAlert({
@@ -2285,9 +2280,9 @@ $(document).ready(function() {
 		updateUserList = function() {
 			var userList = "",
 				currentUser = {};
-	        for (var user in TFMEX.roomInfo.users) {
-	            if (TFMEX.roomInfo.users.hasOwnProperty(user)) {
-					currentUser = TFMEX.roomInfo.users[user];
+	        for (var user in TFMEX.room.users) {
+	            if (TFMEX.room.users.hasOwnProperty(user)) {
+					currentUser = TFMEX.room.users[user];
 					userList += '<li><a href="http://facebook.com/profile.php?id=' + currentUser['fbid'] + '" target="_blank">' + currentUser['name'] + "</a>";
 	            }
 	        }	
@@ -2305,7 +2300,7 @@ $(document).ready(function() {
 			dispatchEventToContentScript('tt-ext-new-room-info')
 		},
 		raiseNewSongTagsEvent = function() {
-		    $('#tt-ext-mpd').first().attr('data-user-id', TFMEX.userInfo.id);
+		    $('#tt-ext-mpd').first().attr('data-user-id', TFMEX.user.id);
 		    $('#tt-ext-mpd').first().attr('data-song-tags', localStorage.TFMEXsongTags);
 			dispatchEventToContentScript('tt-ext-new-song-tags');
 		},
@@ -2361,7 +2356,7 @@ $(document).ready(function() {
                         }
 	                    break;
 	                case "speak":
-                        TFMEX.lastUserAction[TFMEX.roomInfo.userIdFromName(m.name)] = now;
+                        TFMEX.lastUserAction[TFMEX.room.userIdFromName(m.name)] = now;
 	                    if(TFMEX.prefs.filteredChat) {
 	                        if(TFMEX.prefs.chatFilters.length) {
     	                        showChat = false;
@@ -2436,7 +2431,7 @@ $(document).ready(function() {
                         });
 	                    currentVote = TFMEX.votelog[TFMEX.votelog.length - 1];
                         TFMEX.lastUserAction[currentVote[0]] = now;
-						if(currentVote[0] === TFMEX.roommanager.myuserid) {
+						if(currentVote[0] === TFMEX.user.id) {
 							if(currentVote[1] == "down") {
 								$("body").attr("data-cancel-scrobble", true);
 							} else {
@@ -2456,9 +2451,9 @@ $(document).ready(function() {
 						}
 						*/
 	                    try {
-	                        if(TFMEX.prefs.showVote && TFMEX.roomInfo.users[currentVote[0]]) {
+	                        if(TFMEX.prefs.showVote && TFMEX.room.users[currentVote[0]]) {
 	                            desktopAlert({
-	                                title: TFMEX.roomInfo.users[currentVote[0]].name + " voted: ",
+	                                title: TFMEX.room.users[currentVote[0]].name + " voted: ",
 	                                image: "",
 	                                body: voteMap[currentVote[1]],
 	                                timeout: TFMEX.prefs.messageTimeout
