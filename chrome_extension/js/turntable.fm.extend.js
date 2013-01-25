@@ -71,12 +71,12 @@ TFMEX.lastUserAction = {};
 TFMEX.djSongCount = {};
 
 TFMEX.showOverlay = function (tree){
-	turntable.showOverlay(tree);
+	turntable.showAlert(tree);
 }
 
 TFMEX.suggestionsOverlayView = function() {
 	return [
-		"div.modal.suggestionsOverlay.tt-ext-ui",
+		"div.suggestionsOverlay.tt-ext-ui",
 		{
 			style: {
 				width:"590px",
@@ -85,14 +85,6 @@ TFMEX.suggestionsOverlayView = function() {
 				"padding-bottom":0			 
 			}
 		},
-		[
-			"div.close-x",
-			{
-				event: {
-					click: turntable.hideOverlay
-				}
-			} 
-		],
 		[
 			"h2",
 			"Some Suggestions For You"
@@ -244,7 +236,7 @@ TFMEX.ticketflyEventView = function (event) {
 
 TFMEX.settingsItemView = function (itemLabel,clickHandler,elementId) {	
 	return $("#" + elementId).length > 0 ? null : [
-		"div#" + elementId + ".menuItem",
+		"li#" + elementId + ".option",
 		{
 			event: {
 				click: clickHandler
@@ -256,18 +248,10 @@ TFMEX.settingsItemView = function (itemLabel,clickHandler,elementId) {
 
 TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 	return [
-		"div.modal.tt-ext-preferences",
+		"div.tt-ext-preferences",
 		{
 			
 		},
-		[
-			"div.close-x",
-			{
-				event: {
-					click: cancelEvent //turntable.hideOverlay
-				}
-			} 
-		],
 		[
 			"h2",
 			"Extension Settings"
@@ -369,18 +353,10 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 
 TFMEX.exportView = function(cancelEvent) {
 	return [
-		"div.modal.tt-ext-export",
+		"div.tt-ext-export",
 		{
 			
 		},
-		[
-			"div.close-x",
-			{
-				event: {
-					click: cancelEvent //turntable.hideOverlay
-				}
-			} 
-		],
 		[
 			"h2",
 			"Export XSPF"
@@ -411,7 +387,7 @@ TFMEX.exportView = function(cancelEvent) {
 
 TFMEX.roomUsersView = function() {
 	return [
-		"div.modal.roomUsersOverlay",
+		"div.roomUsersOverlay",
 		{
 			style: {
 				width:"600px",
@@ -420,14 +396,6 @@ TFMEX.roomUsersView = function() {
 				"padding-bottom":0			 
 			}
 		},
-		[
-			"div.close-x",
-			{
-				event: {
-					click: turntable.hideOverlay
-				}
-			} 
-		],
 		[
 			"h2",
 			"In the room, we have..."
@@ -836,23 +804,14 @@ TFMEX.tagsOverlayView = function(metadata) {
 	var songName = metadata.song,
 		artistName = metadata.artist;
 	return [
-		"div.modal.tagsOverlay",
+		"div.tfmexModal.tagsOverlay",
 		{
 			style: {
-				width:"590px",
 				"padding-left":0,
 				"padding-right":0,
 				"padding-bottom":0			 
 			}
 		},
-		[
-			"div.close-x",
-			{
-				event: {
-					click: turntable.hideOverlay
-				}
-			} 
-		],
 		[
 			"h2",
 			"Tags For:"
@@ -1208,7 +1167,7 @@ $(document).ready(function() {
 			TFMEX.$body.append('<div id="tfmExtendedWrap"><div id="tfmExtended"><div id="tfmex-ytplayer"></div><div class="tag-container closed"><div class="openTags"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><span class="vertical-text">Tags</span></div><div class="black-right-header"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAS9JREFUeNqkk8FKwzAcxv8t3rsnEDwIgoK5CZ7qm5g32At49jXyCHr2UtCrW49eBBFRYUOXwRTbJvFLsm52y6rFP3xJaZOvv+/fNDLG0H9qyw7R+dUQEwuuMEZg7NP1QIYex25UikFEWmeYJ+66ltan7v7xYdJmYPVAN8MTzBcNAy/7goyODtZMItuD6OyybkQ2j9LbEDlHpJRu72SIwCqFegGCJYmNw3aTpkFZdRGjCnH2d5LFV3Du3Yq5uHvbqSeolICooxyJJ9CqT0qzjWehhcQT3L9INCeFY96RQsQLr8eRNymr/E/NtLGfxjxuAD2/wcT8TqK0oNd3vvyMP2skJRa0kQgaT3nzHKzWZOZNCpgU2FTLYk8/+fq/EKrZ15wEcUpgl9j8UfDVZd8CDAAgHS7xBVF0CwAAAABJRU5ErkJggg==" /><div class="header-text">Tags</div><a class="closeTags">X</a></div><div class="tag-wrap"><ul class="tag-list"></ul><ul class="auto-tag-list"></ul></div></div><div class="settings"><div class="preferences hidden"></div></div><div class="tags hidden"></div><div class="event-container hidden"><div class="events-header">Tour Dates</div><div class="events"></div></div></div></div>');
 
 			var customMenuItems = [
-				{ name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
+				// { name:"Room users", callback: function(){ showRoomUsers() }, elementId:"tt-ext-room-users-menu-item"},
 				{ name:"Extension settings", callback: function(){ showPrefs() }, elementId:"tt-ext-settings-menu-item"},
 				{ name:"Export XSPF", callback: function(){ showExport() }, elementId:"tt-ext-export-menu-item"}
 			]
@@ -1219,7 +1178,7 @@ $(document).ready(function() {
 				var tree = TFMEX.settingsItemView(menuItem.name,menuItem.callback,menuItem.elementId);
 				if (tree) {
 					// console.log("Creating menu item",menuItem.name,"with tree",tree)
-					$("#menuh .menuItem:eq(" + pos + ")").after(util.buildTree(tree))
+					$("#settings-dropdown .option:eq(" + pos + ")").before(util.buildTree(tree))
 				}
 			});
 			
@@ -1242,24 +1201,6 @@ $(document).ready(function() {
 			});
 			$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-remote-song-tags', function() {
 			    console.log('remote tags', $('#tt-ext-mpd').first().attr('data-song-tags-remote'));
-			});
-			$('#tt-ex-export-queue').live('click', function(evt) {
-    			evt.preventDefault();
-    			var xspfText = TFMEX.getXSPF(turntable.playlist.songsByFid);
-    			$('#tt-ex-export').val(xspfText).select();
-			});
-			$('#tt-ex-export-recent').live('click', function(evt) {
-			    evt.preventDefault();
-    			$('#tt-ex-export').val(TFMEX.getXSPF(TFMEX.songlog)).select();
-			});
-			$('#tt-ex-export-save').live('click', function(evt) {
-    			evt.preventDefault();
-    			var bb = new BlobBuilder(),
-    			    blob = null,
-    			    xspfText = $('#tt-ex-export').val();
-                bb.append(xspfText);
-                blob = bb.getBlob("application/xspf+xml;charset=UTF-8");
-                saveAs(blob, $("#tt-ex-export-filename").val());
 			});
 			$('#tt-ext-suggestions-link').live('click', function() {
 					//$('#tt-ext-suggestions-box').dialog()
@@ -1464,16 +1405,6 @@ $(document).ready(function() {
 			localStorage.TFMEX = JSON.stringify(TFMEX.prefs);
 		});
 		
-		$('#overlay').delegate('.remove-tag', 'click.TFMEX', function() {
-			var $this = $(this),
-				$tagWrapper = $this.closest('.tt-ext-song-tag');
-				songId = $tagWrapper.data('song-id'),
-				tag = $tagWrapper.data('tag');
-			TFMEX.removeTagFromSong(tag, songId);
-			$tagWrapper.remove();
-			return false;
-		});
-		
 		
 		$('#songs').on('hover', '.song', function() {
 		    
@@ -1504,6 +1435,31 @@ $(document).ready(function() {
 
 			TFMEX.showOverlay(markup);
 			$('#new-song-tag-value').focus();
+
+			$('#new-song-tag-value').on('keypress', function(evt) {
+    			var $newSongTag = $('#new-song-tag-value'),
+    				$newSongRow = $newSongTag.closest('div'),
+    				tag = $newSongTag.val(),
+    				fileId = $newSongTag.data('song-id');
+    		    if(evt.keyCode === 13) {
+            		evt.preventDefault();
+            		evt.stopPropagation();
+        			TFMEX.addTagToSong(tag, fileId);
+        			$newSongRow.before(util.buildTree(TFMEX.tagView(tag, fileId)));
+        			$newSongTag.val("");
+        		}
+    		});
+
+    		$('.tt-ext-song-tags').on('click', '.remove-tag', function(evt) {
+    			var $this = $(this),
+    				$tagWrapper = $this.closest('.tt-ext-song-tag');
+    				songId = $tagWrapper.data('song-id'),
+    				tag = $tagWrapper.data('tag');
+    			TFMEX.removeTagFromSong(tag, songId);
+    			$tagWrapper.remove();
+    			return false;
+    		});
+    		
 		});
 
 		$('body').delegate('.queue', 'click.TFMEX', function() {
@@ -1516,18 +1472,7 @@ $(document).ready(function() {
 			TFMEX.updateQueueTagIcons();
 		});
 
-		$('#overlay').delegate('.new-song-tag', 'submit.TFMEX', function(evt) {
-			var $newSongTag = $('#new-song-tag-value'),
-				$newSongRow = $newSongTag.closest('div'),
-				tag = $newSongTag.val(),
-				fileId = $newSongTag.data('song-id');
-			TFMEX.addTagToSong(tag, fileId);
-			$newSongRow.before(util.buildTree(TFMEX.tagView(tag, fileId)));
-			$newSongTag.val("");
-			evt.preventDefault();
-		});
 		$('document').keypress(function(evt) {
-			// console.log(evt);
 			if (evt.keyCode === 27) {
 				evt.preventDefault();
 				$('#overlay .close-x').click();
@@ -2044,7 +1989,22 @@ $(document).ready(function() {
 		showExport = function() {
             var markup = util.buildTree(TFMEX.exportView(turntable.hideOverlay));
 
+    		$("*").undelegate(".TFMEX_EXPORT")
             TFMEX.showOverlay(markup)
+			$('#tt-ex-export-queue').on('click.TFMEX_EXPORT', function(evt) {
+    			evt.preventDefault();
+    			var xspfText = TFMEX.getXSPF(turntable.playlist.songsByFid);
+    			$('#tt-ex-export').val(xspfText).select();
+			});
+			$('#tt-ex-export-recent').on('click.TFMEX_EXPORT', function(evt) {
+			    evt.preventDefault();
+    			$('#tt-ex-export').val(TFMEX.getXSPF(TFMEX.songlog)).select();
+			});
+			$('#tt-ex-export-save').on('click.TFMEX_EXPORT', function(evt) {
+    			evt.preventDefault();
+    			var blob = new Blob([$('#tt-ex-export').val()], {"type":"application/xspf+xml;charset=UTF-8"});
+                saveAs(blob, $("#tt-ex-export-filename").val());
+			});
 		},
 		showPrefs = function() {
 			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,savePrefs))
@@ -2143,7 +2103,7 @@ $(document).ready(function() {
 			preferencesContent += '<ul class="currentUserList"></ul></div>';
 
 			if($("body").data('scrobbling-disabled')) {
-				preferencesContent += '<a href="#" class="setEnableScrobbling">Click here to enable last.fm scrobbling.</a>';
+				preferencesContent += '<a class="setEnableScrobbling">Click here to enable last.fm scrobbling.</a>';
 			}
 	        preferencesContent += '<dl class="flL">';
 	        preferencesContent += '<dt>Show Chat Messages?<br />(Note: Disable the chat ding for this to work)</dt>';
@@ -2341,7 +2301,7 @@ $(document).ready(function() {
                         var newSong = (roomInfo ? roomInfo.current_song : null);
                         if (newSong) {
                             if (TFMEX.songlog) {
-                                var currentSong = TFMEX.songlog[TFMEX.songlog.length - 1]
+                                var currentSong = TFMEX.room.currentSong
                                 if (currentSong.starttime != newSong.starttime) {
                                     TFMEX.songlog.push(newSong)
                                     //console.debug("Adding new song",newSong,"to songLog",TFMEX.songlog)

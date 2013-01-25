@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Turntable.fm Extended",
-  "version": "0.7",
+  "version": "0.7.3",
   "description": "Adds desktop notifications, suggested tracks, last.fm scrobbling, concert listings and other additional features to turntable.fm",
   "icons": { "16":"images/turntable-fm-16.png",
 			 "48":"images/turntable-fm-48.png",
@@ -12,7 +12,7 @@
   "content_scripts": [
     {
       "matches": ["http://turntable.fm/*"],
-      "js": ["js/jquery.1.6.1.min.js", "js/contentscript.js", "js/injectScript.js"]
+      "js": ["js/jquery.1.8.3.min.js", "js/contentscript.js", "js/injectScript.js"]
     }
   ],
   "permissions": [

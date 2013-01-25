@@ -64,10 +64,7 @@
 .tt-ext-suggested-song div {clear:right;}
 .tt-ext-suggested-song:nth-child(even), .tt-ext-room-users div:nth-child(even) {background-color:#F0F0F0;} 
 .tt-ext-suggested-song:hover, .tt.ext-room-user:hover {background-color:#E3E3E3;}
-.suggestionsOverlay {width:500px;}
 .suggestionsOverlay p {margin: 8px}
-
-.tagsOverlay {width:500px;}
 
 .tt-ext-room-users {background-color:white;color:#333;text-align:left;margin:15px auto 0 auto;text-shadow:none;max-height: 550px;overflow-y:auto;}
 .tt-ext-room-users > div {display:table;width:100%;}
@@ -152,7 +149,7 @@
 
 .tt-ext-song-metadata { background-color: #ddd; }
 .tt-ext-song-metadata .label { float: left; clear: both; margin-left: 5px; color: #000; text-shadow: 1px 1px 1px #fff; width: 65px; text-align: left; }
-.tt-ext-song-metadata .value { float: left; width: 500px; color: #000; text-shadow: 1px 1px 1px #fff; text-align: left; }
+.tt-ext-song-metadata .value { float: left; width: 400px; color: #000; text-shadow: 1px 1px 1px #fff; text-align: left; }
 .tt-ext-song-metadata input { float: right; margin: 0 5px 5px 0; font-size: 18px; width: 500px; }
 .tt-ext-song-metadata br { clear: both; }
 
@@ -190,3 +187,5 @@ background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAA+CAY
 .modal > h2,
 .modal > p { margin-left: 75px; }
 .modal > p { margin-bottom: 10px; }
+.modal .alert-message .tfmexModal { text-align: left; }
+.modal .alert-message .tfmexModal h2, .modal .alert-message .tfmexModal p { text-align: left; padding-left: 10px; }
