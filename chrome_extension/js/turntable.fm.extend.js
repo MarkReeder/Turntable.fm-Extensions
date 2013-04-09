@@ -2071,7 +2071,7 @@ $(document).ready(function() {
 	        });
 		
 			var enableScrobbling = $('#tt-ext-enable-scrobbling').prop('checked')			
-			turntable.hideOverlay()
+			$('.modal .buttons .submit').click();
 						
 			if (!oldEnableScrobblingValue && enableScrobbling) {
 				turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
