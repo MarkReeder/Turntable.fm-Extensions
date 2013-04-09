@@ -27,6 +27,7 @@
     "js/turntable.fm.extend.keys.js",
     "js/turntable.fm.extend.js",
     "js/injectScript.js",
+    "js/auth_last_fm.js",
     "css/turntable.fm.extend.css",
     "css/tt-ext-ui-theme/jquery-ui-1.8.14.custom.css"
   ]

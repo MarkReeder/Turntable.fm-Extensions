@@ -157,7 +157,7 @@ function scrobble(songObj,session_token) {
 }
 
 function create_session() {
-	//console.debug("In create_session")
+	// console.debug("In create_session")
 	timestamp = new Date().getTime();
 	var method = 'GET';
 	var api_call ='auth.getSession';

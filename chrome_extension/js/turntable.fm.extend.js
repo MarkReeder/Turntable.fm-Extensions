@@ -2007,7 +2007,7 @@ $(document).ready(function() {
 			});
 		},
 		showPrefs = function() {
-			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,savePrefs))
+			var markup = util.buildTree(TFMEX.preferencesView(turntable.hideOverlay,this.savePrefs))
 			var $markup = $(markup)
 			
 			updatePrefs();
@@ -2270,7 +2270,7 @@ $(document).ready(function() {
 		getSendMessageFunction = function() {
 			var messageFunctionName = $('body').data('tt-ext-messageFunctionName')
 			if (!messageFunctionName) {
-				messageFunctionName = turntable.randomRoom.toString().match(/(turntable\.)([^(]+)(\(\{api:)/)[2];
+				messageFunctionName = turntable.randomRoom.toString().match(/(\.)([a-zA-Z0-9]*)(\(\{api:)/)[2];
 				$('body').data('tt-ext-messageFunctionName',messageFunctionName)
 			}
 		    var messageFunc = eval("turntable." + messageFunctionName)
