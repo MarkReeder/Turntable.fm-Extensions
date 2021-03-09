@@ -1,11 +1,10 @@
+console.log('CONTENT SCRIPT')
 var title_string,
 	artist_string,
 	chat_message,
 	existing_track_message,
 	session_token,
 	current_song,
-	api_key = "62be1c8445c92c28e5b36f548c069f69",
-	api_secret = "371780d53d282c42b3e50229df3df313",
 	cancelScrobble = false;
 
 // console.log('TurntableScrobbler loaded.');
@@ -21,6 +20,7 @@ messagePassingContainer[0].addEventListener('tt-ext-new-room-info', function() {
     }
 });
 messagePassingContainer[0].addEventListener('tt-ext-need-lastfm-auth', function() {
+	console.log('GET LAST.FM AUTHENTICATED');
     get_authenticated();
 });
 
@@ -36,7 +36,7 @@ function processNewRoomInfo(songMetadata) {
 function processNewSong(songMetadata) {
     var songLogSource = $('body').attr("data-current-song-log");
 	var songLog = songLogSource ? JSON.parse(songLogSource) : [];
-	// console.debug("Content:processNewSong: Got songMetadata, sending songlog to background:",songLog)
+	console.debug("Content:processNewSong: Got songMetadata, sending songlog to background:",songLog)
 	populateSimilarSongs(songMetadata,songLog);
 	if (localStorage["lastfm-session-token"]) {	
 		sendDataToLastFM(songMetadata);
@@ -56,13 +56,6 @@ function sendDataToLastFM(songMetadata) {
 	nowPlaying(songMetadata,localStorage["lastfm-session-token"]);
 }
 
-function populateSongTags(songMetadata) {
-    chrome.extension.sendRequest({method: "findTopTags", "songMetadata" : songMetadata}, function(response) {
-		// console.log("populateSongTags", songMetadata, response);
-		$('#tfmExtended .tags').append('<div data-song="' + songMetadata.fileId + '" data-tags=\'' + response + '\'></div>');
-    });
-}
-
 function populateSimilarSongs(currentSong,songLog) {
     createSuggestedSongsMarkup();
 	$('body').attr('tt-ext-similar-songs','');
@@ -76,7 +69,7 @@ function populateSimilarSongs(currentSong,songLog) {
 	}    
 	// console.log("requestData", requestData);
 
-    chrome.extension.sendRequest(requestData, function(response) {
+    chrome.runtime.sendMessage(requestData, function(response) {
 		//send songs to injected script
 		$('body').attr('tt-ext-similar-songs',response);
 		var customEvent = document.createEvent('Event');
@@ -102,25 +95,22 @@ function checkForCancelScrobbleChanges() {
 }
 
 function get_authenticated() {
-	var method = 'POST';
-	var callback = chrome.extension.getURL("authenticate.html");
-  	var url = 'http://www.last.fm/api/auth/?api_key='+api_key+"&cb="+callback;
 
-	chrome.extension.sendRequest({method:"clearLastFMData"}, function() {
+	chrome.runtime.sendMessage({method:"authLastFM"}, function() {
 		window.localStorage.removeItem("lastfm-session-token");
 	});	
 	
 	//console.debug("In get_authenticated, cleared out local storage, opening last.fm auth window with url:",url)
-	javascript:window.open(url);
+	// javascript:window.open(url);
 }
 
 
 function check_for_authentication() {
-	chrome.extension.sendRequest({method: "getSession"}, function(token) {		
-		//console.debug("In response for check_for_authentication: token:",token)
-		if(token && token !== 'null') {
+	chrome.runtime.sendMessage({method: "getSession"}, function(token) {
+		// console.debug("In response for check_for_authentication: token:",token)
+		if(token && token !== 'null' && token !== 'undefined') {
 			localStorage["lastfm-session-token"] = token; //shared between the content script and the injected script
-			//console.debug("check_for_authentication: token was not null, checking for cancelScrobble changes.")
+			// console.debug("check_for_authentication: token was not null, checking for cancelScrobble changes.", {token})
 			checkForCancelScrobbleChanges();
 		}
 	});	
@@ -130,17 +120,17 @@ function nowPlaying(songObj,session) {
 	// console.log("Sending now playing request", songObj);
 	var scrobbleEnabled = JSON.parse(localStorage["TFMEX"]).enableScrobbling
 	//console.debug("contentScript::nowPlaying: scrobbleEnabled is",scrobbleEnabled)
-	chrome.extension.sendRequest({method: "nowPlaying",songObj: songObj, session_token: session,scrobbleEnabled:scrobbleEnabled});
+	chrome.runtime.sendMessage({method: "nowPlaying",songObj: songObj, session_token: session,scrobbleEnabled:scrobbleEnabled});
 
 }
 
 function setCancelScrobble(shouldCancel) {
 	// console.log("setCancelScrobble", shouldCancel);
-    chrome.extension.sendRequest({method: "setCancelScrobble", shouldCancel: shouldCancel});
+    chrome.runtime.sendMessage({method: "setCancelScrobble", shouldCancel: shouldCancel});
 }
 
 function saveManifestVersionToDOM() {
-	chrome.extension.sendRequest({method: "getManifestVersion"}, function(response) {
+	chrome.runtime.sendMessage({method: "getManifestVersion"}, function(response) {
 		$('body').attr('tt-ext-manifest-version',response)
     });	
 }

@@ -6,7 +6,7 @@ chrome.tabs.getSelected(null,function(tab) {
 });
 
 console.debug("Calling createSession");
-chrome.extension.sendRequest({method: "createSession"}, function(session_token) {
+chrome.runtime.sendMessage({method: "createSession"}, function(session_token) {
 	console.debug("Storing last.fm session:", session_token);
 	localStorage["lastfm-session-token"] = session_token;	
 	setInterval("checkForChange()",1000);

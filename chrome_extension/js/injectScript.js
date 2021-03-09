@@ -1,10 +1,6 @@
 (function() {
     var js, css;
-    
-    js = document.createElement('script');
-    js.src = chrome.extension.getURL("js/turntable.fm.extend.keys.js?v=" + new Date().getTime());
-    document.body.appendChild(js);
-    
+
     js = document.createElement('script');
     js.src = chrome.extension.getURL("js/turntable.fm.extend.js?v=" + new Date().getTime());
     document.body.appendChild(js);

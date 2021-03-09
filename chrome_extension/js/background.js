@@ -1,4 +1,4 @@
-
+console.log('BACKGROUND')
 var api_key = "62be1c8445c92c28e5b36f548c069f69",
 	api_secret = "371780d53d282c42b3e50229df3df313",
 	session_id,
@@ -17,8 +17,12 @@ if(typeof(songTags) === "undefined") {
 
 saveVersionFromManifest()
 
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
+	// console.log(`message: ${request.method}`)
 	if (request.method == "getSession") {
+		if (!localStorage['lastfm-session-token'] || localStorage['lastfm-session-token'] === 'undefined') {
+			create_session();
+		}
 		sendResponse(localStorage['lastfm-session-token']);
 	} else if (request.method == "createSession") {
 		create_session();
@@ -32,13 +36,31 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		localStorage.removeItem("lastfm-token")
 		localStorage.removeItem("lastfm-session-token")
 		sendResponse()
+	} else if (request.method == "authLastFM") {
+		var method = 'POST';
+		// var callback = chrome.runtime.getURL("authenticate.html");
+		var url = 'http://www.last.fm/api/auth/?api_key='+api_key+'&cb=https://'+chrome.runtime.id+'.chromiumapp.org/authenticate.html';
+		chrome.identity.launchWebAuthFlow({
+			interactive: true,
+			url,
+		}, (returnUrl) => {
+			const token = new URL(returnUrl).searchParams.get('token');
+			// console.debug("Authentication complete. Received last.fm token:",token)
+			localStorage["lastfm-token"] = token;
+			chrome.runtime.sendMessage({method: "createSession"}, function(session_token) {
+				// console.debug("Storing last.fm session:", session_token);
+				localStorage["lastfm-session-token"] = session_token;
+				setInterval("checkForChange()",1000);
+			});
+		})
+		sendResponse()
 	} else if (request.method == "getManifestVersion") {
 		sendResponse(localStorage.manifestVersion)
 	} else {
 		console.warn("Snubbing... Unknown method: " + request.method)
 		sendResponse(); // snub them.
 	}
-});
+})
 
 function saveVersionFromManifest() {
 	$.get(chrome.extension.getURL('manifest.json'),function(data) {
@@ -48,7 +70,9 @@ function saveVersionFromManifest() {
 
 function nowPlaying(songObj,session_token,scrobbleEnabled) {
 	current_song = songObj;
-	//console.debug("In nowPlaying with session_token",session_token);
+	console.debug("In nowPlaying with session_token",session_token);
+	chrome.notifications.create("testNotification", {type: "basic", title:"Now Playing", message: `${songObj.song} by ${songObj.artist}`, iconUrl: "images/turntable-fm-128.png"}, console.log)
+
 	// console.log("lastfm-session-token", session_token);
 	timestamp = Math.round((new Date()).getTime() / 1000);
 
@@ -163,7 +187,8 @@ function create_session() {
 	var api_call ='auth.getSession';
   	var url = 'http://ws.audioscrobbler.com/2.0/';
 	var token = localStorage['lastfm-token'];
-	// console.log("api_key"+api_key+api_call+"token"+token+api_secret);
+	console.log({token})
+	console.log("api_key"+api_key+api_call+"token"+token+api_secret);
 	
 	api_sig = hex_md5("api_key"+api_key+"method"+api_call+"token"+token+api_secret);
 
@@ -182,7 +207,8 @@ function create_session() {
 		if (xhr.readyState == 4) {
 			if (xhr.status == 200) {
 				session_response = JSON.parse(xhr.responseText);
-				//console.debug("create_session: Received data: "+ xhr.responseText);
+				console.log({session_response})
+				console.debug("create_session: Received data: "+ xhr.responseText);
 				localStorage['lastfm-session-token'] = session_response.session.key;				
 			}
 		}
