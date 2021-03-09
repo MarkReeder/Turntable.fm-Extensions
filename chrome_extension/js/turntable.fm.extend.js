@@ -1175,8 +1175,11 @@ $(document).ready(function() {
 			updateUserList();
 	    },
 	    desktopAlert = function(notificationObj) {
-			// console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
-		    if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
+			console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
+			$('#tt-ext-mpd').first().attr('data-desktop-alert', JSON.stringify(notificationObj));
+			dispatchEventToContentScript('tt-new-desktop-alert');
+
+			if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
 				// console.log("Have permissions, setting up desktop alert.");
 			    var notification = webkitNotifications.createNotification(
 				      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
@@ -1219,16 +1222,16 @@ $(document).ready(function() {
 				try {
 		    		// highlightMatchingTracks(songToMatch, $("#right-panel .songlist .song"));
 		    		setTimeout(function() {
-                        if(typeof(TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].userid]) === "undefined") {
-                            TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].userid] = 0;
+                        if(typeof(TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].attributes.userid]) === "undefined") {
+                            TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].attributes.userid] = 0;
                         }
-                        TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].userid] += 1;
+                        TFMEX.djSongCount[TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].attributes.userid] += 1;
 		    		}, 500);
 		            if(TFMEX.prefs.showSong) {
-		    			console.log("About to show song: ", songObj);
+		    			// console.log("About to show song: ", songObj);
 		    			setTimeout(function() {
 		    				// console.log("Show Song: ", songMetadata);
-		    				var title = TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].name + " is spinning:",
+		    				var title = TFMEX.room.users[TFMEX.roommanager.roomData.metadata.currentDj].attributes.name + " is spinning:",
 		                        coverArt = songObj.coverart?songObj.coverart:"",
 		                        body = songObj.artist + " - " + songObj.song;
 		                    desktopAlert({
@@ -1247,17 +1250,6 @@ $(document).ready(function() {
 		    	}
 			}
 	    },
-		updateUserList = function() {
-			var userList = "",
-				currentUser = {};
-	        for (var user in TFMEX.room.users) {
-	            if (TFMEX.room.users.hasOwnProperty(user)) {
-					currentUser = TFMEX.room.users[user];
-					userList += '<li><a href="http://facebook.com/profile.php?id=' + currentUser['fbid'] + '" target="_blank">' + currentUser['name'] + "</a>";
-	            }
-	        }	
-			$('#tfmExtended .preferences .currentUserList').html(userList);
-		},
 		dispatchEventToContentScript = function(eventType) {
 			var customEvent = document.createEvent('Event');
 			customEvent.initEvent(eventType, true, true);
@@ -1298,7 +1290,7 @@ $(document).ready(function() {
 
 			// if(m.hasOwnProperty("msgid")){ }
 
-			// console.log("m.command", m.command);
+			console.log("m.command", m.command);
 	        if(typeof(m.command) !== "undefined") {
 				// console.log("m.command: ", m.command, TFMEX.prefs);
 	            switch(m.command) {

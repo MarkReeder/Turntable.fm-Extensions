@@ -56,6 +56,44 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
 		sendResponse()
 	} else if (request.method == "getManifestVersion") {
 		sendResponse(localStorage.manifestVersion)
+	} else if (request.method == "showNotification") {
+		console.log({request})
+		if (request.notification && request.notification.song) {
+			chrome.notifications.create("songNotification", {
+				type: "basic",
+				title:"Now Playing",
+				message: `${request.notification.song} by ${request.notification.artist}`,
+				iconUrl: "images/turntable-fm-128.png",
+				requireInteraction: true,
+			}, () => {
+				setTimeout(function() {
+					chrome.notifications.clear("songNotification");
+				}, 5000);
+			})
+		} else if (request.notification && request.notification.title && request.notification.body) {
+			chrome.notifications.create("messageNotification", {
+				type: "basic",
+				title: request.notification.title,
+				message: request.notification.body,
+				iconUrl: "images/turntable-fm-128.png",
+				requireInteraction: true,
+			}, () => {
+				setTimeout(function() {
+					chrome.notifications.clear("messageNotification");
+				}, 5000);
+			})
+		} else if (request.notification && request.notification.message) {
+			chrome.notifications.create("messageNotification", {
+				type: "basic",
+				message: request.notification.message,
+				iconUrl: "images/turntable-fm-128.png",
+				requireInteraction: true,
+			}, () => {
+				setTimeout(function() {
+					chrome.notifications.clear("messageNotification");
+				}, 5000);
+			})
+		}
 	} else {
 		console.warn("Snubbing... Unknown method: " + request.method)
 		sendResponse(); // snub them.
@@ -71,7 +109,6 @@ function saveVersionFromManifest() {
 function nowPlaying(songObj,session_token,scrobbleEnabled) {
 	current_song = songObj;
 	console.debug("In nowPlaying with session_token",session_token);
-	chrome.notifications.create("testNotification", {type: "basic", title:"Now Playing", message: `${songObj.song} by ${songObj.artist}`, iconUrl: "images/turntable-fm-128.png"}, console.log)
 
 	// console.log("lastfm-session-token", session_token);
 	timestamp = Math.round((new Date()).getTime() / 1000);

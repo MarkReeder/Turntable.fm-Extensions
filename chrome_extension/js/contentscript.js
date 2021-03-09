@@ -23,6 +23,10 @@ messagePassingContainer[0].addEventListener('tt-ext-need-lastfm-auth', function(
 	console.log('GET LAST.FM AUTHENTICATED');
     get_authenticated();
 });
+messagePassingContainer[0].addEventListener('tt-new-desktop-alert', function () {
+	const alert = $('#tt-ext-mpd').first().attr('data-desktop-alert')
+	chrome.runtime.sendMessage({method:"showNotification", notification: alert}, console.log);
+})
 
 setInterval("check_for_authentication()",1000);
 
@@ -121,7 +125,7 @@ function nowPlaying(songObj,session) {
 	var scrobbleEnabled = JSON.parse(localStorage["TFMEX"]).enableScrobbling
 	//console.debug("contentScript::nowPlaying: scrobbleEnabled is",scrobbleEnabled)
 	chrome.runtime.sendMessage({method: "nowPlaying",songObj: songObj, session_token: session,scrobbleEnabled:scrobbleEnabled});
-
+	chrome.runtime.sendMessage({method:"showNotification", notification: songObj}, console.log);
 }
 
 function setCancelScrobble(shouldCancel) {
