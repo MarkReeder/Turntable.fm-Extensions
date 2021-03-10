@@ -233,7 +233,7 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 		],["div.clB"],
 		[
 			"div.tt-ext-pref-section",
-				["div.save-changes.centered-button",{event:{click:saveEvent}}]
+				["button.save-changes.centered-button",{event:{click:saveEvent}},"Save Preferences"]
 		]
 	]
 }
@@ -637,6 +637,7 @@ $(document).ready(function() {
 			});
 			
 			$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-similar-songs',function () {
+				/*
 				//var similarSongs = $('body').data('similarSongs')
 				var allSimilarSongs = JSON.parse($('body').attr('tt-ext-similar-songs'))
 				//console.debug("allSimilarSongs:",allSimilarSongs)
@@ -652,17 +653,10 @@ $(document).ready(function() {
 					$('#tt-ext-suggestions-link').addClass("tt-ext-link-disabled")
 					$('#tt-ext-suggestions-link').attr("title","Sorry, no suggestions are available.")
 				}
+			 	*/
 			});
 			$('#tt-ext-mpd')[0].addEventListener('tt-ext-process-remote-song-tags', function() {
 			    console.log('remote tags', $('#tt-ext-mpd').first().attr('data-song-tags-remote'));
-			});
-			$('#tt-ext-enable-scrobbling').live('click', (evt) => {
-				if (evt.target.checked) {
-					turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
-						//console.debug("savePrefs: User has selected to enable scrobbling, dispatching last.fm auth event")
-						dispatchEventToContentScript('tt-ext-need-lastfm-auth');
-					})
-				}
 			});
 			$('#tt-ext-suggestions-link').live('click', function() {
 					//$('#tt-ext-suggestions-box').dialog()
@@ -886,6 +880,7 @@ $(document).ready(function() {
 					
 					for(var eventListener in window.turntable.eventListeners.message) {
 						if(window.turntable.eventListeners.message[eventListener] && window.turntable.eventListeners.message[eventListener].toString() !== undefined) {
+							console.log(window.turntable.eventListeners.message[eventListener].toString())
 							numMessageListeners += 1;
 						}
 					}
@@ -896,9 +891,7 @@ $(document).ready(function() {
 						}
 					}
 					*/
-					if(!numMessageListeners) {
-	                	window.turntable.addEventListener("message", extensionEventListener);
-					}
+					window.turntable.addEventListener("message", extensionEventListener);
 					/*
 					if(!numSoundstartListeners) {
 	                	window.turntable.addEventListener("soundstart", extensionEventListener);
@@ -1045,7 +1038,7 @@ $(document).ready(function() {
 				$markup.find('#tt-ext-enable-scrobbling').prop("checked",true)
 			}
 			
-			TFMEX.showOverlay(markup)
+			TFMEX.showOverlay(markup, this.savePrefs)
 		},
 		savePrefs = function() {
 			console.log('savePrefs')
@@ -1089,7 +1082,7 @@ $(document).ready(function() {
 			var enableScrobbling = $('#tt-ext-enable-scrobbling').prop('checked')			
 			$('.modal .buttons .submit').click();
 
-			console.log({oldEnableScrobblingValue, enableScrobbling})
+			// console.log({oldEnableScrobblingValue, enableScrobbling})
 			if (!oldEnableScrobblingValue && enableScrobbling) {
 				turntable.showAlert("In order to enable last.fm scrobbling, you will now be taken to last.fm to authorize Turntable Extended to scrobble tracks on your behalf.", function() {
 					//console.debug("savePrefs: User has selected to enable scrobbling, dispatching last.fm auth event")
@@ -1118,7 +1111,7 @@ $(document).ready(function() {
 	        preferencesContent += '<dl class="flL">';
 	        preferencesContent += '<dt>Show Chat Messages?<br />(Note: Disable the chat ding for this to work)</dt>';
 	        preferencesContent += '<dd><input type="checkbox" id="showChat" data-tfmex-pref="showChat" value="1" /></dd>';
-	        preferencesContent += '<dt>Show Song Messages?</dt>';
+	        preferencesContent += '<dt>Show Song Change Messages?</dt>';
 	        preferencesContent += '<dd><input type="checkbox" id="showSong" data-tfmex-pref="showSong" value="1" /></dd>';
 	        preferencesContent += '<dt>Show Vote Messages?</dt>';
 	        preferencesContent += '<dd><input type="checkbox" id="showVote" data-tfmex-pref="showVote" value="1" /></dd>';
@@ -1142,7 +1135,7 @@ $(document).ready(function() {
 	            if (TFMEX.votelog.hasOwnProperty(vote)) {
 	                currentVote = TFMEX.votelog[vote];
 	                try {
-	                    currentVoteUserName = TFMEX.room.users[currentVote[0]].name;
+	                    currentVoteUserName = TFMEX.room.users[currentVote[0]].attributes.name;
 	                } catch(e) { };
 					if(currentVoteUserName !== "") {
 			            preferencesContent += "<li>";
@@ -1178,23 +1171,6 @@ $(document).ready(function() {
 			console.log("desktopAlert", notificationObj.title + " | " + notificationObj.body);
 			$('#tt-ext-mpd').first().attr('data-desktop-alert', JSON.stringify(notificationObj));
 			dispatchEventToContentScript('tt-new-desktop-alert');
-
-			if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
-				// console.log("Have permissions, setting up desktop alert.");
-			    var notification = webkitNotifications.createNotification(
-				      notificationObj.image?notificationObj.image:"",  // icon url - can be relative
-				      notificationObj.title?notificationObj.title:"",  // notification title
-				      notificationObj.body?notificationObj.body:""  // notification body text
-				    );
-				// TFMEX.notificationQueue.push(notification);
-			    notification.show();
-			    setTimeout(function(){
-					// var lastNotification = TFMEX.notificationQueue.pop();
-			        notification.cancel();
-			    }, notificationObj.timeout);
-			} else {
-				// console.log("Discarded desktop alert, don't have proper permission.")
-			}
 	    },
 	    updateNowPlaying = function(songObj) {
 			var	songToMatch = {};
@@ -1290,9 +1266,8 @@ $(document).ready(function() {
 
 			// if(m.hasOwnProperty("msgid")){ }
 
-			console.log("m.command", m.command);
 	        if(typeof(m.command) !== "undefined") {
-				// console.log("m.command: ", m.command, TFMEX.prefs);
+				console.log("m.command: ", m.command);
 	            switch(m.command) {
 	                case "newsong":
                         // console.debug("Got newsong message")
@@ -1346,7 +1321,7 @@ $(document).ready(function() {
 	                    if(TFMEX.prefs.showListenerChanges) {
 	                        // console.log("showListenerChanges", m);
 	                        desktopAlert({
-	                            title: m.user[0].name + " just " + listenerChangeMap[m.command] + " the room.",
+	                            title: m.user[0].attributes.name + " just " + listenerChangeMap[m.command] + " the room.",
 	                            image: "",
 	                            body: "",
 	                            timeout: TFMEX.prefs.messageTimeout
@@ -1362,7 +1337,7 @@ $(document).ready(function() {
 	                    if(TFMEX.prefs.showDJChanges) {
 	                        // console.log("showDJChanges", m);
 	                        desktopAlert({
-	                            title: m.user[0].name + " " + djChangeMap[m.command] + " the decks.",
+	                            title: m.user[0].attributes.name + " " + djChangeMap[m.command] + " the decks.",
 	                            image: "",
 	                            body: "",
 	                            timeout: TFMEX.prefs.messageTimeout
@@ -1412,7 +1387,7 @@ $(document).ready(function() {
 	                    try {
 	                        if(TFMEX.prefs.showVote && TFMEX.room.users[currentVote[0]]) {
 	                            desktopAlert({
-	                                title: TFMEX.room.users[currentVote[0]].name + " voted: ",
+	                                title: TFMEX.room.users[currentVote[0]].attributes.name + " voted: ",
 	                                image: "",
 	                                body: voteMap[currentVote[1]],
 	                                timeout: TFMEX.prefs.messageTimeout

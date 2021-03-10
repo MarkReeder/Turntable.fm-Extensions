@@ -68,7 +68,7 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
 			}, () => {
 				setTimeout(function() {
 					chrome.notifications.clear("songNotification");
-				}, 5000);
+				}, 10000);
 			})
 		} else if (request.notification && request.notification.title && request.notification.body) {
 			chrome.notifications.create("messageNotification", {
@@ -80,18 +80,43 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
 			}, () => {
 				setTimeout(function() {
 					chrome.notifications.clear("messageNotification");
-				}, 5000);
+				}, 10000);
+			})
+		} else if (request.notification && request.notification.title) {
+			chrome.notifications.create("messageNotification", {
+				type: "basic",
+				title: request.notification.title,
+				message: "",
+				iconUrl: "images/turntable-fm-128.png",
+				requireInteraction: true,
+			}, () => {
+				setTimeout(function() {
+					chrome.notifications.clear("messageNotification");
+				}, 10000);
 			})
 		} else if (request.notification && request.notification.message) {
 			chrome.notifications.create("messageNotification", {
 				type: "basic",
+				title: "",
 				message: request.notification.message,
 				iconUrl: "images/turntable-fm-128.png",
 				requireInteraction: true,
 			}, () => {
 				setTimeout(function() {
 					chrome.notifications.clear("messageNotification");
-				}, 5000);
+				}, 10000);
+			})
+		} else if (request.notification && request.notification.body) {
+			chrome.notifications.create("messageNotification", {
+				type: "basic",
+				title: "",
+				message: request.notification.body,
+				iconUrl: "images/turntable-fm-128.png",
+				requireInteraction: true,
+			}, () => {
+				setTimeout(function() {
+					chrome.notifications.clear("messageNotification");
+				}, 10000);
 			})
 		}
 	} else {
@@ -108,7 +133,7 @@ function saveVersionFromManifest() {
 
 function nowPlaying(songObj,session_token,scrobbleEnabled) {
 	current_song = songObj;
-	console.debug("In nowPlaying with session_token",session_token);
+	// console.debug("In nowPlaying with session_token",session_token);
 
 	// console.log("lastfm-session-token", session_token);
 	timestamp = Math.round((new Date()).getTime() / 1000);
