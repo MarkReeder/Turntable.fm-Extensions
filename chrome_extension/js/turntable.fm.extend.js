@@ -180,7 +180,7 @@ TFMEX.preferencesView = function(cancelEvent,saveEvent) {
 			[
 				"dl.tt-ext-pref-body",
 				[
-					"dt","Chat Messages?",["br"],"(Note: Disable the chat ding for this to work)"
+					"dt","Chat Messages?",["br"]
 				],
 				[
 					"dd",["input#showChat",{type:"checkbox","data-tfmex-pref":"showChat",value:1}]
