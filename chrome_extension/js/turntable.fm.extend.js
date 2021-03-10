@@ -1335,9 +1335,9 @@ $(document).ready(function() {
 	                        TFMEX.djSongCount[m.user[0].userid] = 0;
                         }
 	                    if(TFMEX.prefs.showDJChanges) {
-	                        // console.log("showDJChanges", m);
+	                        console.log("showDJChanges", m);
 	                        desktopAlert({
-	                            title: m.user[0].attributes.name + " " + djChangeMap[m.command] + " the decks.",
+	                            title: m.user[0].name + " " + djChangeMap[m.command] + " the decks.",
 	                            image: "",
 	                            body: "",
 	                            timeout: TFMEX.prefs.messageTimeout
