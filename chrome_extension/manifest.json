@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Turntable.fm Extended",
-  "version": "0.8.0.0",
+  "version": "0.8.1.0",
   "description": "Adds configurable desktop notifications, last.fm scrobbling, and more to turntable.fm",
   "icons": { "16":"images/turntable-fm-16.png",
 			 "48":"images/turntable-fm-48.png",
@@ -11,7 +11,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://turntable.fm/*"],
+      "matches": ["https://turntable.fm/*", "https://deepcut.fm/*", "https://deepcuts.fm/*"],
       "js": ["js/jquery.1.8.3.min.js", "js/contentscript.js", "js/injectScript.js"]
     }
   ],
@@ -21,6 +21,8 @@
     "identity",
 	"http://turntable.fm/*",
 	"https://turntable.fm/*",
+    "https://deepcut.fm/*",
+    "https://deepcuts.fm/*",
     "http://ws.audioscrobbler.com/*"
   ],
   "web_accessible_resources": [
